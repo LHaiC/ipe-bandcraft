@@ -18,6 +18,7 @@ from pathlib import Path
 
 from . import discovery, routing, styles
 from .backends.file_backend import Journal, WriterLock, atomic_write, file_revision
+from .backends.live_backend import LiveBridge, install_ipelet, probe as live_probe
 from .compiler import Compiler
 from .document import IpeDoc
 from .errors import IbcError, OpError
@@ -51,6 +52,7 @@ class Session:
     lock: threading.Lock = field(default_factory=threading.Lock)
     journal: Journal | None = None
     opened_at: float = field(default_factory=time.time)
+    live: LiveBridge | None = None
 
 
 class Service:
@@ -70,7 +72,9 @@ class Service:
 
     def doctor(self) -> dict:
         t = self.tools()
-        return t.report()
+        rep = t.report()
+        rep["live_bridge"] = live_probe(str(t.ipe) if t.ipe else None)
+        return rep
 
     def _measurer_for(self) -> TexMeasurer:
         if self._measurer is None:
@@ -109,15 +113,48 @@ class Service:
 
     def open_document(self, path: str, backend: str = "file",
                       bridge_session_id: str | None = None) -> dict:
-        if backend == "live":
-            raise IbcError(
-                "BACKEND_CAPABILITY_UNAVAILABLE",
-                "live backend is not available in this build (M3 pending)",
-            )
         p = Path(path)
         if not p.is_file():
             raise IbcError("NOT_FOUND", f"no such file: {p}")
+        if backend == "live":
+            return self._open_live(p)
+        if backend != "file":
+            raise IbcError("VALIDATION", f"unknown backend {backend!r}")
         return self._open_session(p, backend="file")
+
+    def _open_live(self, p: Path) -> dict:
+        t = self.tools()
+        if not t.ipe:
+            raise IbcError("BRIDGE_UNAVAILABLE", "ipe.exe not found",
+                           details=t.report())
+        bridge = LiveBridge.start(str(t.ipe), p)
+        try:
+            doc = IpeDoc.load(p)
+            doc.replace_page(bridge.fetch_page())
+        except Exception:
+            bridge.close()
+            raise
+        with self._global_lock:
+            self._counter += 1
+            did = f"doc-{self._counter:04d}"
+            sess = Session(
+                document_id=did, path=p.resolve(), backend="live", doc=doc,
+                revision="sha256:" + doc.content_hash()[:32],
+                journal=Journal(p), live=bridge,
+            )
+            self.sessions[did] = sess
+        snap = build_snapshot(doc)
+        return {
+            "document_id": did,
+            "path": str(p),
+            "backend": "live",
+            "revision": sess.revision,
+            "session_dir": str(bridge.dir),
+            "page_size_bp": list(doc.page_size),
+            "objects": len(snap.objects),
+            "unmanaged_objects": len(snap.unmanaged),
+            "duplicates": sorted(snap.duplicates),
+        }
 
     def _open_session(self, p: Path, backend: str) -> dict:
         doc = IpeDoc.load(p)
@@ -145,6 +182,8 @@ class Service:
         sess = self.sessions.pop(document_id, None)
         if sess is None:
             raise IbcError("NOT_FOUND", f"no session {document_id!r}")
+        if sess.live is not None:
+            sess.live.close()
         return {"closed": document_id}
 
     def _session(self, document_id: str) -> Session:
@@ -189,7 +228,24 @@ class Service:
         }
 
     def _refresh_if_changed(self, sess: Session):
-        """If the file changed on disk, reload + adopt the new revision."""
+        """Adopt a new revision if the authoritative source changed.
+
+        File mode: the .ipe bytes on disk. Live mode: the bound GUI page —
+        manual edits in the GUI are fetched and adopted, they are the
+        authoritative content (SPEC: the bound document is the source).
+        """
+        if sess.live is not None:
+            if not sess.live.alive():
+                raise IbcError("SESSION_EXPIRED",
+                               "bound Ipe GUI exited; live session is over")
+            page = sess.live.fetch_page()
+            probe = sess.doc.clone()
+            probe.replace_page(page)
+            rev = "sha256:" + probe.content_hash()[:32]
+            if rev != sess.revision:
+                sess.doc = probe
+                sess.revision = rev
+            return
         disk = file_revision(sess.path)
         if disk != sess.revision and disk != "missing":
             sess.doc = IpeDoc.load(sess.path)
@@ -228,9 +284,12 @@ class Service:
             )
 
         # source race check before doing any work
-        disk = file_revision(sess.path)
-        if disk != sess.revision:
+        if sess.live is not None:
             self._refresh_if_changed(sess)
+        else:
+            disk = file_revision(sess.path)
+            if disk != sess.revision:
+                self._refresh_if_changed(sess)
         if expected_revision != sess.revision:
             raise IbcError(
                 "REVISION_CONFLICT",
@@ -297,6 +356,10 @@ class Service:
         if _fault("before_commit"):
             raise IbcError("INTERNAL", "injected fault: before_commit")
 
+        if sess.live is not None:
+            return self._commit_live(sess, candidate, fp, request_id, result,
+                                     op_count)
+
         lock = WriterLock(sess.path)
         lock.acquire()
         try:
@@ -326,6 +389,33 @@ class Service:
         _log(f"committed {op_count} op(s) on {sess.path.name} -> {sess.revision}")
         return result
 
+    def _commit_live(self, sess: Session, candidate: IpeDoc, fp: str,
+                     request_id: str, result: dict, op_count: int) -> dict:
+        """Push a candidate page through the bridge as one undoable action."""
+        assert sess.live is not None
+        status = sess.live.apply_page(candidate.page_xml())
+        if status == "conflict":
+            # GUI page diverged from our baseline: adopt it, then tell the
+            # caller to retry against the fresh revision.
+            self._refresh_if_changed(sess)
+            raise IbcError(
+                "REVISION_CONFLICT",
+                "document changed in the bound GUI; re-read revision and retry",
+                details={"current": sess.revision},
+            )
+        # adopt the GUI-normalized page as the authoritative doc state
+        page = sess.live.fetch_page()
+        sess.doc = candidate.clone()
+        sess.doc.replace_page(page)
+        sess.revision = "sha256:" + sess.doc.content_hash()[:32]
+        result["revision"] = sess.revision
+        if sess.journal:
+            sess.journal.append({"request_id": request_id, "fingerprint": fp,
+                                 "status": "committed", "revision": sess.revision,
+                                 "result": result})
+        _log(f"live commit {op_count} op(s) on {sess.path.name} -> {sess.revision}")
+        return result
+
     # ---- higher-level tools ----------------------------------------------------
 
     def route_edges(self, document_id: str, edge_ids: list[str],
@@ -335,9 +425,7 @@ class Service:
 
         sess = self._session(document_id)
         with sess.lock:
-            disk = file_revision(sess.path)
-            if disk != sess.revision:
-                self._refresh_if_changed(sess)
+            self._refresh_if_changed(sess)
             if expected_revision != sess.revision:
                 raise IbcError("REVISION_CONFLICT",
                                f"expected {expected_revision}, current {sess.revision}")
@@ -447,6 +535,10 @@ class Service:
                 raise IbcError("REVISION_CONFLICT",
                                f"expected {expected_revision}, current {sess.revision}")
             target = Path(path) if path else sess.path
+            if sess.live is not None:
+                # authoritative bytes = file skeleton + bound GUI page
+                atomic_write(target, sess.doc.serialize())
+                return {"saved": str(target), "revision": sess.revision}
             if target.resolve() != sess.path.resolve():
                 target.parent.mkdir(parents=True, exist_ok=True)
                 atomic_write(target, sess.doc.serialize())

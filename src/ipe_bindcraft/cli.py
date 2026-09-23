@@ -52,6 +52,12 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("doctor", help="probe Ipe/TeX environment")
     sub.add_parser("schema", help="print the apply_operations JSON Schema")
     sub.add_parser("serve", help="run the MCP stdio server")
+    sub.add_parser("install-ipelet",
+                   help="install ipebindcraft.lua into ~/.ipe/ipelets")
+
+    op = sub.add_parser("open", help="open a document (file or live backend)")
+    op.add_argument("path")
+    op.add_argument("--backend", choices=["file", "live"], default="file")
 
     c = sub.add_parser("create", help="create a new .ipe document")
     c.add_argument("path")
@@ -125,6 +131,11 @@ def main(argv: list[str] | None = None) -> int:
             from .server import main as serve_main
             serve_main()
             return 0
+        if args.cmd == "install-ipelet":
+            from .backends.live_backend import install_ipelet
+            return _out({"installed": str(install_ipelet())})
+        if args.cmd == "open":
+            return _out(svc.open_document(args.path, backend=args.backend))
         if args.cmd == "create":
             return _out(svc.create_document(args.path, args.width, args.height,
                                             args.style, args.tex_profile))

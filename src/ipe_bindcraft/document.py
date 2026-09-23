@@ -15,6 +15,10 @@ from dataclasses import dataclass, field
 
 from lxml import etree
 
+
+def _deepcopy(el: etree._Element) -> etree._Element:
+    return etree.fromstring(etree.tostring(el), _PARSER)
+
 from .errors import IbcError
 from .metadata import META_LAYER, decode_meta
 
@@ -200,6 +204,47 @@ class IpeDoc:
     def notes(self) -> str | None:
         el = self._page.find("notes")
         return el.text if el is not None else None
+
+    def page_xml(self) -> bytes:
+        """Serialize the page as <ipepage><page>...</page></ipepage>
+        (the format produced by Page:xml("ipepage") and parsed by ipe.Page)."""
+        frag = etree.Element("ipepage")
+        frag.append(self._clone_page_as("page"))
+        return etree.tostring(frag, encoding="utf-8")
+
+    def _clone_page_as(self, tag: str) -> etree._Element:
+        frag = etree.Element(tag)
+        for k, v in self._page.attrib.items():
+            frag.set(k, v)
+        for child in self._page:
+            frag.append(_deepcopy(child))
+        return frag
+
+    def replace_page(self, ipepage_xml: bytes) -> None:
+        """Adopt an authoritative <ipepage> fragment (live backend).
+
+        The fragment's children/attributes replace the current <page>'s.
+        """
+        try:
+            frag = etree.fromstring(ipepage_xml, _PARSER)
+        except etree.XMLSyntaxError as exc:
+            raise IbcError("VALIDATION", f"ipepage fragment parse failed: {exc}") from exc
+        # <ipepage> fragments wrap the real content in a <page> child
+        if frag.tag == "ipepage":
+            inner = frag.find("page")
+            if inner is None:
+                raise IbcError("VALIDATION", "<ipepage> without <page> child")
+            frag = inner
+        if frag.tag != "page":
+            raise IbcError("VALIDATION", f"expected <page>, got <{frag.tag}>")
+        for child in list(self._page):
+            self._page.remove(child)
+        for k in list(self._page.attrib):
+            del self._page.attrib[k]
+        for k, v in frag.attrib.items():
+            self._page.set(k, v)
+        for child in frag:
+            self._page.append(child)
 
 
 # ---- element-level helpers ----------------------------------------------------

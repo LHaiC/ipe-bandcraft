@@ -89,7 +89,11 @@ def create_document(path: str, width_bp: float, height_bp: float,
                  style_id, tex_profile)
 
 
-@server.tool(name="open_document", description="Open an existing .ipe file (file backend)")
+@server.tool(name="open_document",
+             description="Open an existing .ipe file. backend='file' edits the "
+                         "file on disk; backend='live' launches a bound Ipe GUI "
+                         "window and edits its in-memory document via the "
+                         "ipebindcraft ipelet (native undo items).")
 def open_document(path: str, backend: str = "file",
                   bridge_session_id: str | None = None) -> dict:
     return _call(svc().open_document, path, backend, bridge_session_id)
