@@ -145,6 +145,44 @@ def test_file_lock_blocks_second_writer(tmp_path):
 
 @requires_ipe
 @requires_tex
+def test_template_palette_icon_auto(tmp_path):
+    """create_document(template=..., palette=...) instantiates real content;
+    icon.create produces a managed group; routing 'auto' picks sensible modes."""
+    svc = Service(TOOLS)
+    doc = svc.create_document(str(tmp_path / "t.ipe"), 460, 300, "paper-default",
+                              palette="paper-vivid", template="parallel_workers")
+    insp = svc.inspect_document(doc["document_id"], include_geometry=True)
+    ids = {o["id"] for o in insp["objects"]}
+    # template content actually landed
+    assert {"disp", "w1", "w4", "join", "sink"} <= ids
+    assert doc["template"] == "parallel_workers"
+
+    # 'auto' edge between row-aligned nodes -> straight (flat bbox);
+    # diagonal -> orthogonal (bent bbox)
+    r = apply(svc, doc["document_id"], insp["revision"], "auto1", [
+        NODE("n1", 30, 260), NODE("n2", 160, 262), NODE("n3", 300, 170),
+        {"op": "edge.create", "id": "ea", "source": {"node": "n1"},
+         "target": {"node": "n2"}, "routing": {"mode": "auto"}},
+        {"op": "edge.create", "id": "eb", "source": {"node": "n1"},
+         "target": {"node": "n3"}, "routing": {"mode": "auto"}},
+        {"op": "icon.create", "id": "ic", "name": "database",
+         "box": {"x": 400, "y": 250, "width": 30, "height": 30}},
+    ])
+    assert r["effects"]["created"] == 6
+    insp2 = svc.inspect_document(doc["document_id"], include_geometry=True)
+    by_id = {o["id"]: o for o in insp2["objects"]}
+    assert by_id["ic"]["kind"] == "icon"
+    # straight edge: bbox height ~ line thickness; orthogonal: wide AND tall
+    assert by_id["ea"]["bbox"][3] < 5
+    assert by_id["eb"]["bbox"][2] > 50 and by_id["eb"]["bbox"][3] > 30
+    # icon renders without errors
+    from ipe_bindcraft.export import render_preview_png
+    png = render_preview_png(TOOLS, svc._session(doc["document_id"]).doc.serialize(), dpi=100)
+    assert png[:4] == b"\x89PNG"
+
+
+@requires_ipe
+@requires_tex
 def test_tex_failure_fails_fast(tmp_path):
     svc = Service(TOOLS)
     doc = svc.create_document(str(tmp_path / "f.ipe"), 400, 300, "paper-default")

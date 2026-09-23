@@ -16,6 +16,8 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from pydantic import TypeAdapter
+
 from . import discovery, routing, styles
 from .backends.file_backend import Journal, WriterLock, atomic_write, file_revision
 from .backends.live_backend import LiveBridge, install_ipelet, probe as live_probe
@@ -29,6 +31,8 @@ from .schemas import (
 )
 from .snapshot import build_snapshot
 from .tex import TexMeasurer
+
+_OPS = TypeAdapter(list[Operation])
 
 FAULT_ENV = "IBC_FAULT"  # fault-injection hook for tests: comma list of stages
 
@@ -91,7 +95,9 @@ class Service:
     # ---- documents ----------------------------------------------------------
 
     def create_document(self, path: str, width_bp: float, height_bp: float,
-                        style_id: str, tex_profile: str = "paper-serif") -> dict:
+                        style_id: str, tex_profile: str = "paper-serif",
+                        palette: str | None = None,
+                        template: str | None = None) -> dict:
         p = Path(path)
         if p.exists() and p.stat().st_size > 0:
             raise IbcError("VALIDATION", f"refusing to overwrite non-empty file {p}")
@@ -101,15 +107,37 @@ class Service:
         prof = styles.TEX_PROFILES.get(tex_profile)
         if prof is None:
             raise IbcError("VALIDATION", f"unknown tex_profile {tex_profile!r}")
+        if palette is not None and palette not in styles.PALETTES:
+            raise IbcError("VALIDATION", f"unknown palette {palette!r}",
+                           details={"known": sorted(styles.PALETTES)})
+        if template is not None:
+            from .templates import TEMPLATES
+            if template not in TEMPLATES:
+                raise IbcError("VALIDATION", f"unknown template {template!r}",
+                               details={"known": sorted(TEMPLATES)})
+        pal = palette or styles.STYLE_DEFAULTS[style_id]["palette"]
         p.parent.mkdir(parents=True, exist_ok=True)
         doc = IpeDoc.new(width_bp, height_bp,
-                         styles.stylesheet_xml(style_id, width_bp, height_bp),
+                         styles.stylesheet_xml(style_id, width_bp, height_bp,
+                                               palette=pal),
                          preamble=prof["preamble"])
         doc.set_doc_meta(style_id=style_id, tex_profile=tex_profile,
-                         palette=styles.STYLE_DEFAULTS[style_id]["palette"],
-                         created_by="ipe-bindcraft")
+                         palette=pal, created_by="ipe-bindcraft")
         atomic_write(p, doc.serialize())
-        return self._open_session(p, backend="file")
+        info = self._open_session(p, backend="file")
+        if template is not None:
+            from .templates import render_template
+            ops = _OPS.validate_python(
+                render_template(template, width_bp, height_bp))
+            res = self.apply_operations(ApplyOperationsInput(
+                document_id=info["document_id"],
+                expected_revision=info["revision"],
+                request_id=f"template-{template}",
+                operations=ops))
+            info["revision"] = res["revision"]
+            info["template"] = template
+            info["template_effects"] = res["effects"]
+        return info
 
     def open_document(self, path: str, backend: str = "file",
                       bridge_session_id: str | None = None) -> dict:

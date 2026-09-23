@@ -15,8 +15,11 @@ around it.
 1. **Inspect first.** For an existing figure call `inspect_document` with
    `include_geometry=true`, note `page_size_bp`, existing object ids, and the
    target column width (e.g. 252 bp single column, 504 bp double). For a new
-   figure call `create_document` with a style preset (`list_presets`) and
-   decide node roles, information flow, and grouping up front.
+   figure call `create_document` with a style preset (`list_presets`) —
+   optionally `template=` (system_overview / algorithm_pipeline /
+   parallel_workers) for a starter layout and `palette=` (paper-muted /
+   paper-vivid / paper-ocean / paper-monochrome) — then decide node roles,
+   information flow, and grouping up front.
    - Never clear/rebuild an existing figure without an explicit reason;
      apply local edits to stable ids.
 
@@ -28,7 +31,12 @@ around it.
 3. **Batch-create semantically.** Use one `apply_operations` batch per
    logical change: `node.create` (shape + label + role), `edge.create` with
    `source`/`target` node ids and port sides — never floating arrow
-   endpoints. Set `request_id` to a fresh unique string and pin
+   endpoints. `routing.mode="auto"` picks straight for row/column-aligned
+   nodes and orthogonal otherwise; use explicit modes when you need control.
+   `icon.create` places curated native-path glyphs (`list_presets "icon"`;
+   database, cloud, gear, server, user, lock, …) inside a bounding box —
+   group it with a node via `objects.group` when it should move together.
+   Set `request_id` to a fresh unique string and pin
    `expected_revision` to the revision from the last response.
 
 4. **Measure text, then fit the box.** After text-bearing ops, labels are

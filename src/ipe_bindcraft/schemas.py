@@ -101,7 +101,7 @@ class Endpoint(Strict):
 
 
 class RoutingAuto(Strict):
-    mode: Literal["straight", "orthogonal"]
+    mode: Literal["straight", "orthogonal", "auto"]
 
 
 class RoutingManual(Strict):
@@ -200,6 +200,15 @@ class EdgeCreate(Strict):
     target: Endpoint
     routing: Routing
     label: Text | None = None
+    role: Role | None = None
+
+
+class IconCreate(Strict):
+    """Curated native-path icon (see list_presets(kind='icon'))."""
+    op: Literal["icon.create"]
+    id: ObjectId
+    name: Annotated[str, Field(min_length=1, max_length=64)]
+    box: Box
     role: Role | None = None
 
 
@@ -346,6 +355,7 @@ Operation = Annotated[
     | TextCreate
     | PathCreate
     | EdgeCreate
+    | IconCreate
     | NodeUpdate
     | TextUpdate
     | PathUpdate
@@ -375,6 +385,8 @@ class CreateDocumentInput(Strict):
     height_bp: PositiveBp
     style_id: StyleId
     tex_profile: str = "paper-serif"
+    palette: str | None = None
+    template: str | None = None
 
 
 class OpenDocumentInput(Strict):
@@ -461,7 +473,7 @@ class GetRequestStatusInput(Strict):
 
 
 class ListPresetsInput(Strict):
-    kind: Literal["style", "tex", "template"]
+    kind: Literal["style", "tex", "template", "icon", "palette"]
 
 
 def finite_json_loads(s: str | bytes) -> object:

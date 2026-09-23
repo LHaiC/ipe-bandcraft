@@ -22,6 +22,7 @@ from .metadata import encode_meta, object_meta, part_meta
 from .schemas import (
     EdgeCreate,
     EdgeUpdate,
+    IconCreate,
     LayerCreate,
     NodeCreate,
     NodeUpdate,
@@ -41,6 +42,7 @@ from .snapshot import (
     NodeObj,
     PathObj,
     SceneSnapshot,
+    SemObj,
     TextObj,
     build_snapshot,
     text_pos_api,
@@ -243,7 +245,7 @@ class Compiler:
     def apply(self, ops: list[Operation]) -> CompileResult:
         # phase 1: collect ids created in this batch (forward-reference support)
         create_types = (NodeCreate, TextCreate, PathCreate, EdgeCreate,
-                        ObjectsGroup, LayerCreate)
+                        IconCreate, ObjectsGroup, LayerCreate)
         batch_new: set[str] = set()
         for i, op in enumerate(ops):
             if not isinstance(op, create_types):
@@ -285,6 +287,7 @@ class Compiler:
             TextCreate: self._text_create,
             PathCreate: self._path_create,
             EdgeCreate: self._edge_create,
+            IconCreate: self._icon_create,
             NodeUpdate: self._node_update,
             TextUpdate: self._text_update,
             PathUpdate: self._path_update,
@@ -422,6 +425,48 @@ class Compiler:
             layer=layer, path_el=path_el, label_el=label_el,
             source=src, target=dst, routing=routing, needs_route=True,
         )
+        self.res.changed_ids.append(op.id)
+        self.res.effects["created"] += 1
+
+    def _icon_create(self, i: int, op: IconCreate):
+        from . import icons
+        b = Box(op.box.x, op.box.y, op.box.width, op.box.height)
+        if not b.inside_page(self.page_w, self.page_h):
+            self._fail(i, "VALIDATION",
+                       f"icon box {b} outside page {self.page_w}x{self.page_h}", [op.id])
+        try:
+            strokes = icons.render_icon(op.name)
+        except IbcError as exc:
+            self._fail(i, exc.code, exc.message, [op.id], exc.details)
+        sx, sy = b.width / 100.0, b.height / 100.0  # design space is 0..100
+        fill_token = {"compute": "fill_compute", "memory": "fill_memory",
+                      "data": "fill_data", "control": "fill_control",
+                      "io": "fill_io"}.get(op.role or "", "fill_data")
+        grp = etree.Element("group")
+        grp.set("custom", object_meta(op.id, "icon", icon=op.name,
+                                      role=op.role or ""))
+        for k, st in enumerate(strokes):
+            lines = []
+            first = True
+            for (px, py) in st["points"]:
+                ip = to_ipe(Point(b.x + px * sx, b.y + py * sy), self.page_h)
+                lines.append(f"{fmt(ip.x)} {fmt(ip.y)} {'m' if first else 'l'}")
+                first = False
+            if st.get("closed"):
+                lines.append("h")  # Ipe 'h' = closepath
+            grp.append(make_path_el(
+                "\n".join(lines), stroke="ibc-stroke", pen="ibc-thin",
+                fill=f"ibc-{fill_token}" if st.get("fill") else None,
+                custom=part_meta(op.id, f"p{k}")))
+        layer = self._active_layer()
+        if layer:
+            grp.set("layer", layer)
+        self.doc.page.append(grp)
+        self.snap.objects[op.id] = SemObj(
+            id=op.id, kind="icon", el=grp,
+            meta={"id": op.id, "kind": "icon", "icon": op.name,
+                  "role": op.role or ""},
+            layer=layer)
         self.res.changed_ids.append(op.id)
         self.res.effects["created"] += 1
 

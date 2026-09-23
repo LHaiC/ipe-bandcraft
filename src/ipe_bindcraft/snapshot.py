@@ -106,7 +106,7 @@ class SemObj:
     layer: str | None = None
 
     def bbox(self, doc: IpeDoc) -> Box | None:
-        raise NotImplementedError
+        return _children_bbox(self.el, doc)
 
 
 @dataclass
@@ -179,24 +179,29 @@ class GroupObj(SemObj):
     member_ids: list[str] = field(default_factory=list)
 
     def bbox(self, doc: IpeDoc) -> Box | None:
-        boxes = []
-        for child in self.el:
-            if child.tag == "path":
-                bb = path_bbox_api(child, doc.page_size[1])
-                if bb:
-                    boxes.append(bb)
-            elif child.tag == "text":
-                tb = text_box_api(child, doc.page_size[1])
-                if tb:
-                    boxes.append((tb.x, tb.y, tb.x2, tb.y2))
-        if not boxes:
-            return None
-        return Box(
-            min(b[0] for b in boxes),
-            min(b[1] for b in boxes),
-            max(b[2] for b in boxes) - min(b[0] for b in boxes),
-            max(b[3] for b in boxes) - min(b[1] for b in boxes),
-        )
+        return _children_bbox(self.el, doc)
+
+
+def _children_bbox(el: etree._Element, doc: IpeDoc) -> Box | None:
+    """Union of path/text child bboxes (API space), or None."""
+    boxes = []
+    for child in el:
+        if child.tag == "path":
+            bb = path_bbox_api(child, doc.page_size[1])
+            if bb:
+                boxes.append(bb)
+        elif child.tag == "text":
+            tb = text_box_api(child, doc.page_size[1])
+            if tb:
+                boxes.append((tb.x, tb.y, tb.x2, tb.y2))
+    if not boxes:
+        return None
+    return Box(
+        min(b[0] for b in boxes),
+        min(b[1] for b in boxes),
+        max(b[2] for b in boxes) - min(b[0] for b in boxes),
+        max(b[3] for b in boxes) - min(b[1] for b in boxes),
+    )
 
 
 @dataclass

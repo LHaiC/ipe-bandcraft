@@ -3,11 +3,10 @@
 Ipe automation skill + MCP server for AI coding agents. Create and iteratively edit native Ipe vector figures for academic papers via natural language — with transactional batches, stable object IDs, LaTeX-measured text, and native undo in the live GUI.
 
 <p align="center">
-  <img src="https://img.shields.io/badge/platform-Windows-blue" alt="Windows first">
-  <img src="https://img.shields.io/badge/Ipe-7.2.x-purple" alt="Ipe 7.2.x">
-  <img src="https://img.shields.io/badge/MCP-compatible-green" alt="MCP compatible">
-  <img src="https://img.shields.io/badge/tests-58%20passing-brightgreen" alt="58 tests passing">
-  <img src="https://img.shields.io/badge/license-MIT-orange" alt="MIT License">
+  <a href="https://github.com/LHaiC/ipe-bandcraft/actions/workflows/ci.yml"><img src="https://github.com/LHaiC/ipe-bandcraft/actions/workflows/ci.yml/badge.svg?branch=master" alt="CI status"></a>
+  <a href="https://github.com/LHaiC/ipe-bandcraft/blob/master/LICENSE"><img src="https://img.shields.io/github/license/LHaiC/ipe-bandcraft" alt="License"></a>
+  <img src="https://img.shields.io/github/languages/top/LHaiC/ipe-bandcraft" alt="Top language">
+  <img src="https://img.shields.io/github/last-commit/LHaiC/ipe-bandcraft/master" alt="Last commit">
 </p>
 
 <p align="center">
@@ -15,12 +14,18 @@ Ipe automation skill + MCP server for AI coding agents. Create and iteratively e
 </p>
 <p align="center"><em>Real pipeline output — 8-node system overview with semantic edges bound to node outlines, LaTeX-set labels, rendered by iperender (see tests/fixtures/)</em></p>
 
+<p align="center">
+  <img src="docs/demo_composite.png" alt="Icons grouped with nodes, auto-routed edges, paper-vivid palette" width="700">
+</p>
+<p align="center"><em>Curated icons grouped with nodes via <code>objects.group</code>, <code>auto</code>-routed semantic edges, LaTeX edge label, <code>paper-vivid</code> palette</em></p>
+
 ## Features
 
 - **15 MCP tools** for document lifecycle, semantic editing, routing, layout, lint, preview, export
 - **Two authoritative backends** — the `.ipe` file on disk, or a bound live Ipe window's in-memory document; never a second scene.json
 - **Transactional batches** — typed operations with stable IDs, optimistic revision checks, request deduplication, atomic commits, and per-operation failure details
-- **Semantic connections** — edges bind to real node outlines (rect / rounded / ellipse / diamond ports), auto re-route when endpoints move, straight / orthogonal / manual waypoint routing
+- **Semantic connections** — edges bind to real node outlines (rect / rounded / ellipse / diamond ports), auto re-route when endpoints move; `straight` / `orthogonal` / `auto` / `manual` routing
+- **Academic presets** — semantic palettes (`paper-muted`, `paper-vivid`, `paper-ocean`, `paper-monochrome`), 3 starter templates (`system_overview`, `algorithm_pipeline`, `parallel_workers`), and 15 curated native-path icons (`database`, `cloud`, `gear`, …)
 - **LaTeX-aware text** — labels are measured through real `ipescript` + `doc:runLatex()`; node resize never shrinks fonts
 - **Native undo in Live mode** — every batch is a single `model:register` transaction (one Ctrl-Z), verified end-to-end
 - **Preserve-everything editing** — unknown Ipe objects, human regrouping, and manual edits survive round-trips
@@ -70,6 +75,7 @@ Any MCP-compatible agent can use the server over stdio:
 ```text
 ipe-bindcraft doctor                  # probe Ipe/TeX/MCP + live bridge
 ipe-bindcraft create fig.ipe --width 504 --height 300
+ipe-bindcraft create fig.ipe --template algorithm_pipeline --palette paper-vivid
 ipe-bindcraft apply fig.ipe @ops.json --revision sha256:... --request-id r1
 ipe-bindcraft inspect fig.ipe --geometry
 ipe-bindcraft lint fig.ipe --target-width 252
@@ -89,13 +95,13 @@ nodes, orthogonal edges, Nature-muted palette; export PDF + PNG."*
 | `doctor` | Probe Ipe/TeX/SDK and the live bridge |
 | `create_document` / `open_document` / `save_document` / `close_document` | Session lifecycle (file or live backend) |
 | `inspect_document` | Objects, geometry, edges, stale flags |
-| `apply_operations` | Atomic typed batch: node/text/path/edge create+update, translate, delete, group/ungroup, layer |
+| `apply_operations` | Atomic typed batch: node/text/path/edge/icon create+update, translate, delete, group/ungroup, layer |
 | `route_edges` | Re-route stale or selected edges |
 | `layout_objects` | Align / distribute / grid |
 | `lint_figure` / `polish_figure` | Overflow/overlap/width checks + safe fixes |
 | `render_preview` | PNG preview (image content; `PREVIEW_STALE` aware) |
 | `export_figure` | PDF/SVG/PNG generation directory + manifest |
-| `get_request_status` / `list_presets` | Journal status / styles & profiles |
+| `get_request_status` / `list_presets` | Journal status / styles, palettes, templates, icons, TeX profiles |
 
 ## Live mode
 
@@ -129,12 +135,12 @@ layout engine.
 ## Testing
 
 ```bash
-pytest tests/unit            # 47 tests — no external deps
+pytest tests/unit            # 58 tests — no external deps
 pytest tests/integration     # real Ipe + TeX (skips when absent)
 pytest tests/windows_live    # real ipe.exe windows (Windows only)
 ```
 
-58 tests currently pass on the target machine; see
+70 tests currently pass on the target machine; see
 `docs/acceptance-report.md` for the A01–A23 evidence matrix, and
 `docs/capability-report.md` for the M0 probe results.
 
@@ -144,8 +150,9 @@ pytest tests/windows_live    # real ipe.exe windows (Windows only)
   documents must live on ASCII paths (internal temp dirs are already
   ASCII-safe).
 - Single page / single view documents only.
-- No icon library, no hop-over arc routing, no arbitrary code execution —
-  by design.
+- Icons are a curated set of 15 native-path glyphs — arbitrary SVG icon
+  import is intentionally out of scope. No hop-over arc routing, no
+  arbitrary code execution — by design.
 
 ## Development
 

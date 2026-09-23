@@ -76,17 +76,22 @@ def doctor() -> dict:
     return _call(svc().doctor)
 
 
-@server.tool(name="list_presets", description="List style / tex / template presets")
+@server.tool(name="list_presets",
+             description="List presets: kind in {style, palette, tex, template, icon}")
 def list_presets(kind: str) -> dict:
     return _call(svc().list_presets, kind)
 
 
 @server.tool(name="create_document",
-             description="Create a new .ipe document (single page, embedded ibc style)")
+             description="Create a new .ipe document (single page, embedded ibc style). "
+                         "Optional: palette (see list_presets 'palette') and template "
+                         "(see list_presets 'template') to instantiate a starter layout.")
 def create_document(path: str, width_bp: float, height_bp: float,
-                    style_id: str, tex_profile: str = "paper-serif") -> dict:
+                    style_id: str, tex_profile: str = "paper-serif",
+                    palette: str | None = None,
+                    template: str | None = None) -> dict:
     return _call(svc().create_document, path, width_bp, height_bp,
-                 style_id, tex_profile)
+                 style_id, tex_profile, palette, template)
 
 
 @server.tool(name="open_document",

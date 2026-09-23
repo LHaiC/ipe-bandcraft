@@ -65,6 +65,8 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("--height", type=float, default=841.89)
     c.add_argument("--style", default="paper-default")
     c.add_argument("--tex-profile", default="paper-serif")
+    c.add_argument("--palette", default=None)
+    c.add_argument("--template", default=None)
 
     o = sub.add_parser("inspect", help="open + list objects")
     o.add_argument("path")
@@ -138,7 +140,9 @@ def main(argv: list[str] | None = None) -> int:
             return _out(svc.open_document(args.path, backend=args.backend))
         if args.cmd == "create":
             return _out(svc.create_document(args.path, args.width, args.height,
-                                            args.style, args.tex_profile))
+                                            args.style, args.tex_profile,
+                                            palette=args.palette,
+                                            template=args.template))
         if args.cmd == "inspect":
             info = svc.open_document(args.path)
             res = svc.inspect_document(info["document_id"], args.ids,
