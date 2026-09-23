@@ -49,9 +49,12 @@ jobs:
         shell: pwsh
         run: |
           # winget/choco installs update User/Machine PATH, which the
-          # already-running runner process does not see — re-read it.
-          $env:PATH = [Environment]::GetEnvironmentVariable("PATH","Machine") +
-                      ";" + [Environment]::GetEnvironmentVariable("PATH","User")
+          # already-running runner process does not see — APPEND it to the
+          # current PATH (replacing it would drop uv/tools injected by
+          # earlier steps via GITHUB_PATH).
+          $env:PATH = $env:PATH + ";" +
+                      [Environment]::GetEnvironmentVariable("PATH","Machine") + ";" +
+                      [Environment]::GetEnvironmentVariable("PATH","User")
           if (Get-Command initexmf -ErrorAction SilentlyContinue) {
             # on-the-fly package install must be non-interactive in CI
             initexmf --set-config-value="[MPM]AutoInstall=1"
@@ -62,7 +65,8 @@ jobs:
       - name: Doctor + integration tests
         shell: pwsh
         run: |
-          $env:PATH = [Environment]::GetEnvironmentVariable("PATH","Machine") +
-                      ";" + [Environment]::GetEnvironmentVariable("PATH","User")
+          $env:PATH = $env:PATH + ";" +
+                      [Environment]::GetEnvironmentVariable("PATH","Machine") + ";" +
+                      [Environment]::GetEnvironmentVariable("PATH","User")
           uv run ipe-bindcraft doctor
           uv run pytest tests/integration -v -rs
