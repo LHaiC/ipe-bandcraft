@@ -40,5 +40,12 @@ jobs:
         run: winget install --id MiKTeX.MiKTeX -e --accept-source-agreements --accept-package-agreements --disable-interactivity
         continue-on-error: true
       - run: uv sync --locked
-      - run: uv run ipe-bindcraft doctor
-      - run: uv run pytest tests/integration -v -rs
+      - name: Doctor + integration tests (PATH refreshed for winget installs)
+        shell: pwsh
+        run: |
+          # winget-installed tools land in User/Machine PATH, which the
+          # already-running runner process does not see — re-read it here.
+          $env:PATH = [Environment]::GetEnvironmentVariable("PATH","Machine") +
+                      ";" + [Environment]::GetEnvironmentVariable("PATH","User")
+          uv run ipe-bindcraft doctor
+          uv run pytest tests/integration -v -rs
