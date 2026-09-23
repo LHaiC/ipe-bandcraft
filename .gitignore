@@ -1,0 +1,21 @@
+# spec package
+docs/spec/
+
+# python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+
+# test/build artifacts
+.pytest_cache/
+tests/**/out/
+tmp/
+*.tmp
+
+# ipe-bindcraft runtime artifacts
+.ipe-bindcraft-journal/
+*.ibc-journal
+*.ibc-lock

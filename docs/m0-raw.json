@@ -1,0 +1,194 @@
+{
+  "checks": {
+    "xml_roundtrip": {
+      "pass": true,
+      "rc": 0,
+      "output": ""
+    },
+    "custom_roundtrip": {
+      "pass": true,
+      "custom_attr": true,
+      "layer_data": true,
+      "detail": "",
+      "custom_value": "ibc1:eyJpZCI6InByb2JlX3JlY3QiLCJraW5kIjoibm9kZSIsInNjaGVtYSI6MX0",
+      "decoded": {
+        "id": "probe_rect",
+        "kind": "node",
+        "schema": 1
+      }
+    },
+    "latex_measure": {
+      "pass": true,
+      "rc": 0,
+      "output": "ibc-measure-ok",
+      "ipetoipe_xml_runlatex_produced_pdf": true,
+      "spec_deviation": "SPEC section 9.2 template `ipetoipe -xml -runlatex` emits PDF in Ipe 7.2.29; measurement uses `ipescript measure` instead.",
+      "width_attrs": [
+        "123.555",
+        "32.227"
+      ],
+      "height_attrs": [
+        "5.977",
+        "5.535"
+      ],
+      "depth_attrs": [
+        "1.55",
+        "0"
+      ]
+    },
+    "internal_pdf": {
+      "pass": true,
+      "rc": 0,
+      "output": "Document C:\\Users\\lhc\\AppData\\Local\\Temp\\ibc-m0-rhalf1ec\\probe_measured.ipe has 1 pages (1 views)\nPdflatex was run sucessfully."
+    },
+    "png_render": {
+      "pass": true,
+      "rc": 0,
+      "pixels": [
+        525,
+        395
+      ],
+      "expected": [
+        525,
+        396
+      ],
+      "output": "Pdflatex was run sucessfully."
+    },
+    "svg_export": {
+      "pass": true,
+      "rc": 0,
+      "output": "Pdflatex was run sucessfully.",
+      "svg_tag": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"252\" height=\"190\" viewBox=\"0 0 252 190\""
+    },
+    "publication_pdf": {
+      "pass": true,
+      "rc": 0,
+      "visible_box_ok": true,
+      "output": "Document C:\\Users\\lhc\\AppData\\Local\\Temp\\ibc-m0-rhalf1ec\\internal.pdf has 1 pages (1 views)\nPdflatex was run sucessfully.\nWarning: the exported file contains no Ipe markup.\nIt cannot be read by Ipe - make sure you keep the original!",
+      "mediabox": [
+        0.0,
+        0.0,
+        252.0,
+        190.0
+      ],
+      "cropbox": [
+        9.0,
+        39.7,
+        240.3,
+        176.977
+      ],
+      "fonts": []
+    },
+    "space_paths": {
+      "pass": true,
+      "rc": 0,
+      "output": ""
+    },
+    "nonascii_paths": {
+      "pass": false,
+      "severity": "limitation",
+      "rc": 1,
+      "output": "Error opening the file: No such file or directory",
+      "limitation": "Ipe CLI cannot open non-ASCII argv paths on this system (ANSI codepage mismatch); service stages files in ASCII temp dirs."
+    },
+    "relative_ascii_cwd_workaround": {
+      "pass": true,
+      "rc": 0,
+      "output": ""
+    },
+    "ascii_staging_workaround": {
+      "pass": true,
+      "rc": 0,
+      "output": ""
+    },
+    "mcp_sdk_stdio": {
+      "pass": true,
+      "rc": 0,
+      "sdk_version": "2.2.0",
+      "detail": {
+        "tools": [
+          "echo",
+          "pixel"
+        ],
+        "echo_structured": {
+          "echo": "hello",
+          "ok": true
+        },
+        "echo_isError": false,
+        "pixel_blocks": [
+          "text",
+          "image"
+        ],
+        "pixel_isError": false
+      },
+      "output": "{\"tools\": [\"echo\", \"pixel\"], \"echo_structured\": {\"echo\": \"hello\", \"ok\": true}, \"echo_isError\": false, \"pixel_blocks\": [\"text\", \"image\"], \"pixel_isError\": false}\nm0 smoke server starting"
+    }
+  },
+  "env": {
+    "ipe_root": "C:\\Users\\lhc\\AppData\\Local\\Microsoft\\WinGet\\Packages\\OtfriedCheong.Ipe_Microsoft.Winget.Source_8wekyb3d8bbwe\\ipe-7.2.29\\bin",
+    "tools": {
+      "ipe": {
+        "path": "C:\\Users\\lhc\\AppData\\Local\\Microsoft\\WinGet\\Packages\\OtfriedCheong.Ipe_Microsoft.Winget.Source_8wekyb3d8bbwe\\ipe-7.2.29\\bin\\ipe.exe",
+        "version": "7.2.29",
+        "source": "portable:C:\\Users\\lhc\\AppData\\Local\\Microsoft\\WinGet\\Packages\\OtfriedCheong.Ipe_Microsoft.Winget.Source_8wekyb3d8bbwe",
+        "error": null,
+        "found": true
+      },
+      "ipetoipe": {
+        "path": "C:\\Users\\lhc\\AppData\\Local\\Microsoft\\WinGet\\Packages\\OtfriedCheong.Ipe_Microsoft.Winget.Source_8wekyb3d8bbwe\\ipe-7.2.29\\bin\\ipetoipe.exe",
+        "version": "7.2.29",
+        "source": "portable:C:\\Users\\lhc\\AppData\\Local\\Microsoft\\WinGet\\Packages\\OtfriedCheong.Ipe_Microsoft.Winget.Source_8wekyb3d8bbwe",
+        "error": null,
+        "found": true
+      },
+      "iperender": {
+        "path": "C:\\Users\\lhc\\AppData\\Local\\Microsoft\\WinGet\\Packages\\OtfriedCheong.Ipe_Microsoft.Winget.Source_8wekyb3d8bbwe\\ipe-7.2.29\\bin\\iperender.exe",
+        "version": "7.2.29",
+        "source": "portable:C:\\Users\\lhc\\AppData\\Local\\Microsoft\\WinGet\\Packages\\OtfriedCheong.Ipe_Microsoft.Winget.Source_8wekyb3d8bbwe",
+        "error": null,
+        "found": true
+      },
+      "ipescript": {
+        "path": "C:\\Users\\lhc\\AppData\\Local\\Microsoft\\WinGet\\Packages\\OtfriedCheong.Ipe_Microsoft.Winget.Source_8wekyb3d8bbwe\\ipe-7.2.29\\bin\\ipescript.exe",
+        "version": "7.2.29",
+        "source": "portable:C:\\Users\\lhc\\AppData\\Local\\Microsoft\\WinGet\\Packages\\OtfriedCheong.Ipe_Microsoft.Winget.Source_8wekyb3d8bbwe",
+        "error": null,
+        "found": true
+      }
+    },
+    "tex": {
+      "pdflatex": {
+        "path": "C:\\Users\\lhc\\AppData\\Local\\Programs\\MiKTeX\\miktex\\bin\\x64\\pdflatex.EXE",
+        "version": "4.26",
+        "source": "PATH",
+        "error": null,
+        "found": true
+      },
+      "xelatex": {
+        "path": "C:\\Users\\lhc\\AppData\\Local\\Programs\\MiKTeX\\miktex\\bin\\x64\\xelatex.EXE",
+        "version": "4.18",
+        "source": "PATH",
+        "error": null,
+        "found": true
+      },
+      "lualatex": {
+        "path": "C:\\Users\\lhc\\AppData\\Local\\Programs\\MiKTeX\\miktex\\bin\\x64\\lualatex.EXE",
+        "version": "1.24.0",
+        "source": "PATH",
+        "error": null,
+        "found": true
+      }
+    },
+    "notes": []
+  },
+  "workdir": "C:\\Users\\lhc\\AppData\\Local\\Temp\\ibc-m0-rhalf1ec",
+  "summary": {
+    "passed": 11,
+    "total": 12,
+    "all_pass": false,
+    "blocking_failures": [],
+    "limitations": [
+      "nonascii_paths"
+    ]
+  }
+}

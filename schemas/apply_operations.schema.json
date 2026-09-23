@@ -1,0 +1,1364 @@
+{
+  "$defs": {
+    "Box": {
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        },
+        "width": {
+          "exclusiveMinimum": 0,
+          "title": "Width",
+          "type": "number"
+        },
+        "height": {
+          "exclusiveMinimum": 0,
+          "title": "Height",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+      ],
+      "title": "Box",
+      "type": "object"
+    },
+    "BoxPatch": {
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "X"
+        },
+        "y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Y"
+        },
+        "width": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Width"
+        },
+        "height": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Height"
+        }
+      },
+      "title": "BoxPatch",
+      "type": "object"
+    },
+    "EdgeCreate": {
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "const": "edge.create",
+          "title": "Op",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9_.\\-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/Endpoint"
+        },
+        "target": {
+          "$ref": "#/$defs/Endpoint"
+        },
+        "routing": {
+          "discriminator": {
+            "mapping": {
+              "manual": "#/$defs/RoutingManual",
+              "orthogonal": "#/$defs/RoutingAuto",
+              "straight": "#/$defs/RoutingAuto"
+            },
+            "propertyName": "mode"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/RoutingAuto"
+            },
+            {
+              "$ref": "#/$defs/RoutingManual"
+            }
+          ],
+          "title": "Routing"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "role": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role"
+        }
+      },
+      "required": [
+        "op",
+        "id",
+        "source",
+        "target",
+        "routing"
+      ],
+      "title": "EdgeCreate",
+      "type": "object"
+    },
+    "EdgeUpdate": {
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "const": "edge.update",
+          "title": "Op",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9_.\\-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "changes": {
+          "$ref": "#/$defs/EdgeUpdateChanges"
+        }
+      },
+      "required": [
+        "op",
+        "id",
+        "changes"
+      ],
+      "title": "EdgeUpdate",
+      "type": "object"
+    },
+    "EdgeUpdateChanges": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Endpoint"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Endpoint"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "routing": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "manual": "#/$defs/RoutingManual",
+                  "orthogonal": "#/$defs/RoutingAuto",
+                  "straight": "#/$defs/RoutingAuto"
+                },
+                "propertyName": "mode"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/RoutingAuto"
+                },
+                {
+                  "$ref": "#/$defs/RoutingManual"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Routing"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TextPatch"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "role": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role"
+        }
+      },
+      "title": "EdgeUpdateChanges",
+      "type": "object"
+    },
+    "Endpoint": {
+      "additionalProperties": false,
+      "properties": {
+        "node": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9_.\\-]{0,63}$",
+          "title": "Node",
+          "type": "string"
+        },
+        "port": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Port"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "node"
+      ],
+      "title": "Endpoint",
+      "type": "object"
+    },
+    "LayerCreate": {
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "const": "layer.create",
+          "title": "Op",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9_.\\-]{0,63}$",
+          "title": "Name",
+          "type": "string"
+        },
+        "visible": {
+          "default": true,
+          "title": "Visible",
+          "type": "boolean"
+        },
+        "locked": {
+          "default": false,
+          "title": "Locked",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "op",
+        "name"
+      ],
+      "title": "LayerCreate",
+      "type": "object"
+    },
+    "NodeCreate": {
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "const": "node.create",
+          "title": "Op",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9_.\\-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "shape": {
+          "enum": [
+            "rect",
+            "rounded_rect",
+            "ellipse",
+            "diamond"
+          ],
+          "title": "Shape",
+          "type": "string"
+        },
+        "box": {
+          "$ref": "#/$defs/Box"
+        },
+        "label": {
+          "$ref": "#/$defs/Text"
+        },
+        "role": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role"
+        },
+        "style_id": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Style Id"
+        },
+        "corner_radius_bp": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Corner Radius Bp"
+        }
+      },
+      "required": [
+        "op",
+        "id",
+        "shape",
+        "box",
+        "label"
+      ],
+      "title": "NodeCreate",
+      "type": "object"
+    },
+    "NodeUpdate": {
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "const": "node.update",
+          "title": "Op",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9_.\\-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "changes": {
+          "$ref": "#/$defs/NodeUpdateChanges"
+        }
+      },
+      "required": [
+        "op",
+        "id",
+        "changes"
+      ],
+      "title": "NodeUpdate",
+      "type": "object"
+    },
+    "NodeUpdateChanges": {
+      "additionalProperties": false,
+      "properties": {
+        "box": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoxPatch"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "label": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TextPatch"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "role": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role"
+        },
+        "style_id": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Style Id"
+        }
+      },
+      "title": "NodeUpdateChanges",
+      "type": "object"
+    },
+    "ObjectsDelete": {
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "const": "objects.delete",
+          "title": "Op",
+          "type": "string"
+        },
+        "ids": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z][A-Za-z0-9_.\\-]{0,63}$",
+            "type": "string"
+          },
+          "maxItems": 500,
+          "minItems": 1,
+          "title": "Ids",
+          "type": "array"
+        },
+        "cascade_edges": {
+          "default": false,
+          "title": "Cascade Edges",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "op",
+        "ids"
+      ],
+      "title": "ObjectsDelete",
+      "type": "object"
+    },
+    "ObjectsGroup": {
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "const": "objects.group",
+          "title": "Op",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9_.\\-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "ids": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z][A-Za-z0-9_.\\-]{0,63}$",
+            "type": "string"
+          },
+          "maxItems": 500,
+          "minItems": 2,
+          "title": "Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "op",
+        "id",
+        "ids"
+      ],
+      "title": "ObjectsGroup",
+      "type": "object"
+    },
+    "ObjectsTranslate": {
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "const": "objects.translate",
+          "title": "Op",
+          "type": "string"
+        },
+        "ids": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z][A-Za-z0-9_.\\-]{0,63}$",
+            "type": "string"
+          },
+          "maxItems": 500,
+          "minItems": 1,
+          "title": "Ids",
+          "type": "array"
+        },
+        "dx": {
+          "title": "Dx",
+          "type": "number"
+        },
+        "dy": {
+          "title": "Dy",
+          "type": "number"
+        }
+      },
+      "required": [
+        "op",
+        "ids",
+        "dx",
+        "dy"
+      ],
+      "title": "ObjectsTranslate",
+      "type": "object"
+    },
+    "ObjectsUngroup": {
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "const": "objects.ungroup",
+          "title": "Op",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9_.\\-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "op",
+        "id"
+      ],
+      "title": "ObjectsUngroup",
+      "type": "object"
+    },
+    "PathCreate": {
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "const": "path.create",
+          "title": "Op",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9_.\\-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "segments": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "C": "#/$defs/SegCubic",
+                "L": "#/$defs/SegLine",
+                "M": "#/$defs/SegMove",
+                "Z": "#/$defs/SegClose"
+              },
+              "propertyName": "cmd"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/SegMove"
+              },
+              {
+                "$ref": "#/$defs/SegLine"
+              },
+              {
+                "$ref": "#/$defs/SegCubic"
+              },
+              {
+                "$ref": "#/$defs/SegClose"
+              }
+            ]
+          },
+          "maxItems": 1024,
+          "minItems": 2,
+          "title": "Segments",
+          "type": "array"
+        },
+        "stroke_width_bp": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Stroke Width Bp"
+        },
+        "role": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role"
+        },
+        "obstacle": {
+          "default": false,
+          "title": "Obstacle",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "op",
+        "id",
+        "segments"
+      ],
+      "title": "PathCreate",
+      "type": "object"
+    },
+    "PathUpdate": {
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "const": "path.update",
+          "title": "Op",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9_.\\-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "changes": {
+          "$ref": "#/$defs/PathUpdateChanges"
+        }
+      },
+      "required": [
+        "op",
+        "id",
+        "changes"
+      ],
+      "title": "PathUpdate",
+      "type": "object"
+    },
+    "PathUpdateChanges": {
+      "additionalProperties": false,
+      "properties": {
+        "segments": {
+          "anyOf": [
+            {
+              "items": {
+                "discriminator": {
+                  "mapping": {
+                    "C": "#/$defs/SegCubic",
+                    "L": "#/$defs/SegLine",
+                    "M": "#/$defs/SegMove",
+                    "Z": "#/$defs/SegClose"
+                  },
+                  "propertyName": "cmd"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/SegMove"
+                  },
+                  {
+                    "$ref": "#/$defs/SegLine"
+                  },
+                  {
+                    "$ref": "#/$defs/SegCubic"
+                  },
+                  {
+                    "$ref": "#/$defs/SegClose"
+                  }
+                ]
+              },
+              "maxItems": 1024,
+              "minItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Segments"
+        },
+        "stroke_width_bp": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Stroke Width Bp"
+        },
+        "role": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role"
+        },
+        "obstacle": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Obstacle"
+        }
+      },
+      "title": "PathUpdateChanges",
+      "type": "object"
+    },
+    "Point": {
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ],
+      "title": "Point",
+      "type": "object"
+    },
+    "Port": {
+      "additionalProperties": false,
+      "properties": {
+        "side": {
+          "enum": [
+            "north",
+            "east",
+            "south",
+            "west",
+            "auto"
+          ],
+          "title": "Side",
+          "type": "string"
+        },
+        "offset": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Offset"
+        }
+      },
+      "required": [
+        "side"
+      ],
+      "title": "Port",
+      "type": "object"
+    },
+    "RoutingAuto": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": [
+            "straight",
+            "orthogonal"
+          ],
+          "title": "Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "title": "RoutingAuto",
+      "type": "object"
+    },
+    "RoutingManual": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "const": "manual",
+          "title": "Mode",
+          "type": "string"
+        },
+        "waypoints": {
+          "items": {
+            "$ref": "#/$defs/Point"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Waypoints",
+          "type": "array"
+        }
+      },
+      "required": [
+        "mode",
+        "waypoints"
+      ],
+      "title": "RoutingManual",
+      "type": "object"
+    },
+    "SegClose": {
+      "additionalProperties": false,
+      "properties": {
+        "cmd": {
+          "const": "Z",
+          "title": "Cmd",
+          "type": "string"
+        }
+      },
+      "required": [
+        "cmd"
+      ],
+      "title": "SegClose",
+      "type": "object"
+    },
+    "SegCubic": {
+      "additionalProperties": false,
+      "properties": {
+        "cmd": {
+          "const": "C",
+          "title": "Cmd",
+          "type": "string"
+        },
+        "x1": {
+          "title": "X1",
+          "type": "number"
+        },
+        "y1": {
+          "title": "Y1",
+          "type": "number"
+        },
+        "x2": {
+          "title": "X2",
+          "type": "number"
+        },
+        "y2": {
+          "title": "Y2",
+          "type": "number"
+        },
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        }
+      },
+      "required": [
+        "cmd",
+        "x1",
+        "y1",
+        "x2",
+        "y2",
+        "x",
+        "y"
+      ],
+      "title": "SegCubic",
+      "type": "object"
+    },
+    "SegLine": {
+      "additionalProperties": false,
+      "properties": {
+        "cmd": {
+          "const": "L",
+          "title": "Cmd",
+          "type": "string"
+        },
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        }
+      },
+      "required": [
+        "cmd",
+        "x",
+        "y"
+      ],
+      "title": "SegLine",
+      "type": "object"
+    },
+    "SegMove": {
+      "additionalProperties": false,
+      "properties": {
+        "cmd": {
+          "const": "M",
+          "title": "Cmd",
+          "type": "string"
+        },
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        }
+      },
+      "required": [
+        "cmd",
+        "x",
+        "y"
+      ],
+      "title": "SegMove",
+      "type": "object"
+    },
+    "Text": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": [
+            "plain",
+            "latex"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 8192,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "font_size_bp": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Font Size Bp"
+        }
+      },
+      "required": [
+        "mode",
+        "text"
+      ],
+      "title": "Text",
+      "type": "object"
+    },
+    "TextCreate": {
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "const": "text.create",
+          "title": "Op",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9_.\\-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        },
+        "text": {
+          "$ref": "#/$defs/Text"
+        },
+        "role": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role"
+        }
+      },
+      "required": [
+        "op",
+        "id",
+        "x",
+        "y",
+        "text"
+      ],
+      "title": "TextCreate",
+      "type": "object"
+    },
+    "TextPatch": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "anyOf": [
+            {
+              "enum": [
+                "plain",
+                "latex"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mode"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "maxLength": 8192,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text"
+        },
+        "font_size_bp": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Font Size Bp"
+        }
+      },
+      "title": "TextPatch",
+      "type": "object"
+    },
+    "TextUpdate": {
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "const": "text.update",
+          "title": "Op",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9_.\\-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "changes": {
+          "$ref": "#/$defs/TextUpdateChanges"
+        }
+      },
+      "required": [
+        "op",
+        "id",
+        "changes"
+      ],
+      "title": "TextUpdate",
+      "type": "object"
+    },
+    "TextUpdateChanges": {
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "X"
+        },
+        "y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Y"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TextPatch"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "role": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role"
+        }
+      },
+      "title": "TextUpdateChanges",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "document_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Document Id",
+      "type": "string"
+    },
+    "expected_revision": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Expected Revision",
+      "type": "string"
+    },
+    "request_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.\\-]{0,127}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "operations": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "edge.create": "#/$defs/EdgeCreate",
+            "edge.update": "#/$defs/EdgeUpdate",
+            "layer.create": "#/$defs/LayerCreate",
+            "node.create": "#/$defs/NodeCreate",
+            "node.update": "#/$defs/NodeUpdate",
+            "objects.delete": "#/$defs/ObjectsDelete",
+            "objects.group": "#/$defs/ObjectsGroup",
+            "objects.translate": "#/$defs/ObjectsTranslate",
+            "objects.ungroup": "#/$defs/ObjectsUngroup",
+            "path.create": "#/$defs/PathCreate",
+            "path.update": "#/$defs/PathUpdate",
+            "text.create": "#/$defs/TextCreate",
+            "text.update": "#/$defs/TextUpdate"
+          },
+          "propertyName": "op"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/NodeCreate"
+          },
+          {
+            "$ref": "#/$defs/TextCreate"
+          },
+          {
+            "$ref": "#/$defs/PathCreate"
+          },
+          {
+            "$ref": "#/$defs/EdgeCreate"
+          },
+          {
+            "$ref": "#/$defs/NodeUpdate"
+          },
+          {
+            "$ref": "#/$defs/TextUpdate"
+          },
+          {
+            "$ref": "#/$defs/PathUpdate"
+          },
+          {
+            "$ref": "#/$defs/EdgeUpdate"
+          },
+          {
+            "$ref": "#/$defs/ObjectsTranslate"
+          },
+          {
+            "$ref": "#/$defs/ObjectsDelete"
+          },
+          {
+            "$ref": "#/$defs/ObjectsGroup"
+          },
+          {
+            "$ref": "#/$defs/ObjectsUngroup"
+          },
+          {
+            "$ref": "#/$defs/LayerCreate"
+          }
+        ]
+      },
+      "maxItems": 200,
+      "minItems": 1,
+      "title": "Operations",
+      "type": "array"
+    },
+    "dry_run": {
+      "default": false,
+      "title": "Dry Run",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "document_id",
+    "expected_revision",
+    "request_id",
+    "operations"
+  ],
+  "title": "ApplyOperationsInput",
+  "type": "object"
+}
