@@ -1,107 +1,161 @@
 # ipe-bindcraft
 
-Windows-first [Ipe](https://ipe.otfried.org/) MCP server for academic paper figures.
+Ipe automation skill + MCP server for AI coding agents. Create and iteratively edit native Ipe vector figures for academic papers via natural language — with transactional batches, stable object IDs, LaTeX-measured text, and native undo in the live GUI.
 
-An MCP (Model Context Protocol) server + CLI that lets an agent create and
-iteratively edit **native Ipe vector figures** through semantic, batched,
-transactional operations — while the `.ipe` file (file backend) or the bound
-Ipe window's document (live backend) stays the single authoritative source
-and human edits in Ipe are preserved.
+<p align="center">
+  <img src="https://img.shields.io/badge/platform-Windows-blue" alt="Windows first">
+  <img src="https://img.shields.io/badge/Ipe-7.2.x-purple" alt="Ipe 7.2.x">
+  <img src="https://img.shields.io/badge/MCP-compatible-green" alt="MCP compatible">
+  <img src="https://img.shields.io/badge/tests-58%20passing-brightgreen" alt="58 tests passing">
+  <img src="https://img.shields.io/badge/license-MIT-orange" alt="MIT License">
+</p>
 
-Status: v0.2 development snapshot. Not a published PyPI package. See
-`docs/capability-report.md` and `docs/acceptance-report.md` for what is
-actually verified on the target machine.
+## Features
+
+- **15 MCP tools** for document lifecycle, semantic editing, routing, layout, lint, preview, export
+- **Two authoritative backends** — the `.ipe` file on disk, or a bound live Ipe window's in-memory document; never a second scene.json
+- **Transactional batches** — typed operations with stable IDs, optimistic revision checks, request deduplication, atomic commits, and per-operation failure details
+- **Semantic connections** — edges bind to real node outlines (rect / rounded / ellipse / diamond ports), auto re-route when endpoints move, straight / orthogonal / manual waypoint routing
+- **LaTeX-aware text** — labels are measured through real `ipescript` + `doc:runLatex()`; node resize never shrinks fonts
+- **Native undo in Live mode** — every batch is a single `model:register` transaction (one Ctrl-Z), verified end-to-end
+- **Preserve-everything editing** — unknown Ipe objects, human regrouping, and manual edits survive round-trips
+- **Honest errors** — stable machine-readable codes (`REVISION_CONFLICT`, `LATEX_FAILED`, `GUI_BUSY`, `COMMIT_STATUS_UNKNOWN`, …) as `isError=true` tool results
 
 ## Requirements
 
-- Windows 10/11 (live backend and the test suite are Windows-only)
-- Ipe 7.2.x installed (verified: 7.2.29 via winget)
-- A local TeX distribution for text measurement (verified: MiKTeX 26.2 —
-  `pdflatex`/`xelatex`/`lualatex` on PATH)
-- Python 3.13 + `uv`
+- **Windows 10/11** (the live backend and `tests/windows_live` are Windows-only)
+- **Ipe 7.2.x** — verified on 7.2.29 (winget `OtfriedCheong.Ipe`)
+- **A local TeX** distribution for label measurement — verified on MiKTeX 26.2
+- **Python 3.13** + [`uv`](https://docs.astral.sh/uv/)
 
-## Install
+## Installation
 
-```text
-pip install uv          # if uv is not installed
-uv sync --locked        # creates .venv with locked deps
+```bash
+git clone https://github.com/LHaiC/ipe-bandcraft.git
+cd ipe-bandcraft
+uv sync --locked            # creates .venv with locked dependencies
 ```
 
-The console script is then `.venv/Scripts/ipe-bindcraft.exe`.
+For live (GUI) mode, install the bridge ipelet once per user:
 
-Optional, for live (GUI) mode — install the bridge ipelet once per user:
-
-```text
+```bash
 .venv/Scripts/ipe-bindcraft.exe install-ipelet
 ```
 
-This copies `ipelet/ipebindcraft.lua` to `%USERPROFILE%\Ipelets\` (the user
-ipelet directory Ipe reads on Windows). It does not modify any global Ipe or
-system config.
+This copies `ipelet/ipebindcraft.lua` into `%USERPROFILE%\Ipelets\`. It does
+not touch any global Ipe or system configuration.
 
-## CLI
+## MCP configuration
 
-Every subcommand prints JSON on stdout; logs go to stderr.
-
-```text
-ipe-bindcraft doctor                 # probe Ipe/TeX/MCP, incl. live_bridge
-ipe-bindcraft create fig.ipe --width 504 --height 300 --style paper-default
-ipe-bindcraft inspect fig.ipe --geometry
-ipe-bindcraft apply fig.ipe @ops.json --revision sha256:... --request-id r1
-ipe-bindcraft route fig.ipe edge1 --revision ... --request-id r2
-ipe-bindcraft layout fig.ipe n1 n2 --mode align --options '{"edge":"left"}' ...
-ipe-bindcraft lint fig.ipe --target-width 252
-ipe-bindcraft preview fig.ipe -o fig.png --dpi 150
-ipe-bindcraft export fig.ipe --formats pdf svg png -o out/
-ipe-bindcraft open fig.ipe --backend live     # launch bound GUI session
-ipe-bindcraft install-ipelet
-ipe-bindcraft serve                           # stdio MCP server
-ipe-bindcraft schema                          # apply_operations JSON Schema
-```
-
-## MCP client configuration (generic stdio example)
+Any MCP-compatible agent can use the server over stdio:
 
 ```json
 {
   "mcpServers": {
     "ipe-bindcraft": {
-      "command": "C:\\Data\\EDA\\projects\\ipe-bandcraft\\.venv\\Scripts\\python.exe",
+      "command": "C:\\path\\to\\ipe-bandcraft\\.venv\\Scripts\\python.exe",
       "args": ["-m", "ipe_bindcraft", "serve"]
     }
   }
 }
 ```
 
-`serve` keeps stdout for the MCP protocol only; diagnostics go to stderr.
-Business errors are returned as `isError=true` tool results with a stable
-JSON `code` (e.g. `REVISION_CONFLICT`, `LATEX_FAILED`, `GUI_BUSY`).
+## Quick start
+
+```text
+ipe-bindcraft doctor                  # probe Ipe/TeX/MCP + live bridge
+ipe-bindcraft create fig.ipe --width 504 --height 300
+ipe-bindcraft apply fig.ipe @ops.json --revision sha256:... --request-id r1
+ipe-bindcraft inspect fig.ipe --geometry
+ipe-bindcraft lint fig.ipe --target-width 252
+ipe-bindcraft preview fig.ipe -o fig.png
+ipe-bindcraft export fig.ipe --formats pdf svg png -o out/
+ipe-bindcraft open fig.ipe --backend live    # bound GUI session
+ipe-bindcraft serve                          # stdio MCP server
+```
+
+Or just ask your agent: *"Create a system-overview figure in fig.ipe with 8
+nodes, orthogonal edges, Nature-muted palette; export PDF + PNG."*
+
+## Tools (15)
+
+| Tool | Description |
+|------|-------------|
+| `doctor` | Probe Ipe/TeX/SDK and the live bridge |
+| `create_document` / `open_document` / `save_document` / `close_document` | Session lifecycle (file or live backend) |
+| `inspect_document` | Objects, geometry, edges, stale flags |
+| `apply_operations` | Atomic typed batch: node/text/path/edge create+update, translate, delete, group/ungroup, layer |
+| `route_edges` | Re-route stale or selected edges |
+| `layout_objects` | Align / distribute / grid |
+| `lint_figure` / `polish_figure` | Overflow/overlap/width checks + safe fixes |
+| `render_preview` | PNG preview (image content; `PREVIEW_STALE` aware) |
+| `export_figure` | PDF/SVG/PNG generation directory + manifest |
+| `get_request_status` / `list_presets` | Journal status / styles & profiles |
 
 ## Live mode
 
-`open_document(path, backend="live")` (MCP) or `open --backend live` (CLI)
-launches `ipe.exe` bound to a private session directory. Each
-`apply_operations` batch becomes **one native undo item** in that window;
-manual edits in the GUI are adopted as authoritative and conflicting batches
-return `REVISION_CONFLICT`. See `docs/acceptance-report.md` §M3.
+`open_document(path, backend="live")` launches `ipe.exe` bound to a private
+session directory; the bundled ipelet applies each batch via
+`ipe.Page` + `doc:set` inside one `model:register` transaction:
 
-## Layout
+- one batch = **one native undo item** (Ctrl-Z / Ctrl-Y verified)
+- manual edits in the GUI are authoritative — conflicting batches get
+  `REVISION_CONFLICT` instead of overwriting
+- GUI exit mid-request surfaces `COMMIT_STATUS_UNKNOWN`; never silently
+  falls back to writing the file
 
-- `src/ipe_bindcraft/` — service layer + FileBackend/LiveBackend + compiler
-- `ipelet/ipebindcraft.lua` — Ipe-side bridge for the Live backend
-- `resources/` — style presets and figure templates
-- `skills/academic-figure/SKILL.md` — agent skill for the editing loop
-- `tests/` — unit, integration (real Ipe/TeX), fixtures, windows_live
-- `docs/` — capability report, acceptance report, third-party notices
+## Architecture
+
+```
+AI Agent  <-- MCP stdio -->  ipe-bindcraft service
+                                  │
+                    ┌─────────────┴─────────────┐
+                FileBackend                 LiveBackend
+             (.ipe authoritative)      (bound GUI doc authoritative)
+                    │                           │
+              atomic write + lock    ipelet: ipe.Page + doc:set
+                                    inside one model:register
+```
+
+One Python candidate compiler serves both backends — Lua only validates the
+baseline and submits the candidate page; it contains no second router or
+layout engine.
+
+## Testing
+
+```bash
+pytest tests/unit            # 47 tests — no external deps
+pytest tests/integration     # real Ipe + TeX (skips when absent)
+pytest tests/windows_live    # real ipe.exe windows (Windows only)
+```
+
+58 tests currently pass on the target machine; see
+`docs/acceptance-report.md` for the A01–A23 evidence matrix, and
+`docs/capability-report.md` for the M0 probe results.
 
 ## Known limitations
 
-- Ipe 7.2.29 CLI tools cannot open paths containing non-ASCII characters on
-  this zh-CN Windows build; the service works around this internally with
-  ASCII temp dirs, but a document whose *own* path is non-ASCII cannot be
-  rendered/exported by `iperender`. Pure-ASCII paths are required for now.
-- Single page, single view documents only.
-- See `docs/acceptance-report.md` for the full pass/fail/skip matrix.
+- Ipe 7.2.29 CLI tools cannot open non-ASCII paths on zh-CN Windows;
+  documents must live on ASCII paths (internal temp dirs are already
+  ASCII-safe).
+- Single page / single view documents only.
+- No icon library, no hop-over arc routing, no arbitrary code execution —
+  by design.
+
+## Development
+
+```bash
+uv sync --locked --group dev
+pytest tests -q
+ipe-bindcraft schema > schemas/apply_operations.schema.json
+```
+
+## Credits
+
+- [Ipe](https://ipe.otfried.org/) by Otfried Cheong — the extensible drawing editor this project automates
+- [omnigraffle-bindcraft](https://github.com/Youn-17/omnigraffle-bindcraft) by Youn-17 — conceptual reference for batch operations, semantic connections, and the MCP + skill split
+- [Model Context Protocol](https://modelcontextprotocol.io/) by Anthropic
 
 ## License
 
-MIT. See `docs/third-party-notices.md` for bundled/referenced components.
+MIT — see `docs/third-party-notices.md` for dependency and tool notices.
