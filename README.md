@@ -10,6 +10,11 @@ Ipe automation skill + MCP server for AI coding agents. Create and iteratively e
   <img src="https://img.shields.io/badge/license-MIT-orange" alt="MIT License">
 </p>
 
+<p align="center">
+  <img src="docs/demo_system_overview.png" alt="Demo: system overview figure" width="700">
+</p>
+<p align="center"><em>Real pipeline output — 8-node system overview with semantic edges bound to node outlines, LaTeX-set labels, rendered by iperender (see tests/fixtures/)</em></p>
+
 ## Features
 
 - **15 MCP tools** for document lifecycle, semantic editing, routing, layout, lint, preview, export
