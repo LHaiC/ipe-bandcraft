@@ -117,6 +117,26 @@ class TestLiveBackend:
             _apply(svc, info["document_id"], info["revision"], "t5", [NODE])
         assert ei.value.code in ("SESSION_EXPIRED", "BRIDGE_UNAVAILABLE")
 
+    def test_two_live_sessions_isolated(self, tmp_path):
+        """A17: two bound windows, ops on one never touch the other."""
+        svc = Service()
+        t1 = tmp_path / "a.ipe"; t1.write_bytes(FIXTURE.read_bytes())
+        t2 = tmp_path / "b.ipe"; t2.write_bytes(FIXTURE.read_bytes())
+        i1 = svc.open_document(str(t1), backend="live")
+        i2 = svc.open_document(str(t2), backend="live")
+        s1, s2 = svc.sessions[i1["document_id"]], svc.sessions[i2["document_id"]]
+        assert s1.live.dir != s2.live.dir
+        try:
+            _apply(svc, i1["document_id"], i1["revision"], "iso-1", [NODE])
+            assert _gui_has(s1, b">MARKER<")
+            assert not _gui_has(s2, b">MARKER<")
+            # revisions/pages stay independent
+            assert svc.inspect_document(i2["document_id"])["revision"] \
+                == i2["revision"]
+        finally:
+            svc.close_document(i1["document_id"])
+            svc.close_document(i2["document_id"])
+
     def test_save_writes_authoritative_doc(self, live, tmp_path):
         svc, info, sess = live
         did, rev = info["document_id"], info["revision"]
