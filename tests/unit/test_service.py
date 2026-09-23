@@ -120,6 +120,42 @@ def test_crash_before_commit_journal(tmp_path, monkeypatch):
     assert file_revision(p) == doc["revision"]
 
 
+def test_crash_before_measure(tmp_path, monkeypatch):
+    """Fault before measurement: nothing committed, retry sees the journal."""
+    p = mkdoc_file(tmp_path)
+    svc = Service()
+    doc = svc.open_document(str(p))
+    text_ops = [{"op": "text.create", "id": "t1", "x": 10, "y": 10,
+                 "text": {"mode": "plain", "text": "hi"}}]
+    monkeypatch.setenv("IBC_FAULT", "before_measure")
+    with pytest.raises(IbcError) as e:
+        apply(svc, doc["document_id"], doc["revision"], "req-m", text_ops)
+    assert e.value.code == "INTERNAL"
+    monkeypatch.delenv("IBC_FAULT")
+    from ipe_bindcraft.backends.file_backend import file_revision
+    assert file_revision(p) == doc["revision"]  # nothing was written
+
+
+def test_crash_after_commit_uncertain(tmp_path, monkeypatch):
+    """Fault after atomic write: file changed, result lost -> retry must
+    surface COMMIT_STATUS_UNKNOWN (not silently double-apply)."""
+    p = mkdoc_file(tmp_path)
+    svc = Service()
+    doc = svc.open_document(str(p))
+    monkeypatch.setenv("IBC_FAULT", "after_commit")
+    with pytest.raises(IbcError) as e:
+        apply(svc, doc["document_id"], doc["revision"], "req-x", PATH_OPS)
+    assert e.value.code == "COMMIT_STATUS_UNKNOWN"
+    monkeypatch.delenv("IBC_FAULT")
+    from ipe_bindcraft.backends.file_backend import file_revision
+    # the commit DID land on disk; the session still holds the old revision
+    assert file_revision(p) != doc["revision"]
+    # a blind retry of the same request_id must not re-apply
+    with pytest.raises(IbcError) as e2:
+        apply(svc, doc["document_id"], file_revision(p), "req-x", PATH_OPS)
+    assert e2.value.code == "COMMIT_STATUS_UNKNOWN"
+
+
 def test_get_request_status(tmp_path):
     p = mkdoc_file(tmp_path)
     svc = Service()

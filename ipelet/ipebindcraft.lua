@@ -313,14 +313,17 @@ end
 -- ---------------------------------------------------------------------------
 
 if os.getenv("IPE_BINDCRAFT_LIVE_DIR") and _G.MODEL and _G.MODEL.new then
+  local live_dir = os.getenv("IPE_BINDCRAFT_LIVE_DIR")
   local orig_new = _G.MODEL.new
   _G.MODEL.new = function(...)
     local m = orig_new(...)
-    if m.ui and not M[m] then
+    -- one session dir = one bound window. If the user opens a second
+    -- document in this process it must NOT hijack the bridge (A17).
+    if m.ui and not M[m]
+       and not file_exists(live_dir .. "\\session.txt") then
       local ok, err = pcall(start, m)
       if not ok then
-        write_file(os.getenv("IPE_BINDCRAFT_LIVE_DIR")
-                   .. "\\autostart-error.txt", tostring(err))
+        write_file(live_dir .. "\\autostart-error.txt", tostring(err))
       end
     end
     return m
