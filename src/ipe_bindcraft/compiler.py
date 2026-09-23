@@ -665,7 +665,7 @@ class Compiler:
         parent.append(grp)
         self.snap.objects[op.id] = GroupObj(
             id=op.id, kind="group", el=grp,
-            meta={"id": op.id, "kind": "group", "role": op.role or ""},
+            meta={"id": op.id, "kind": "group"},
             layer=layer, member_ids=list(op.ids),
         )
         self.res.changed_ids.append(op.id)
