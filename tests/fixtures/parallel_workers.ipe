@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<!DOCTYPE ipe SYSTEM "ipe.dtd">
+<ipe version="70218" creator="ipe-bindcraft 0.1">
+<ipestyle name="ibc-paper-default">
+<arrowsize name="ibc-arrow" value="3.2"/>
+<color name="ibc-accent" value="0.55 0.22 0.22"/>
+<color name="ibc-edge" value="0.3 0.3 0.34"/>
+<color name="ibc-fill_compute" value="0.87 0.91 0.95"/>
+<color name="ibc-fill_control" value="0.93 0.88 0.94"/>
+<color name="ibc-fill_data" value="0.88 0.93 0.87"/>
+<color name="ibc-fill_io" value="0.95 0.95 0.9"/>
+<color name="ibc-fill_memory" value="0.96 0.9 0.8"/>
+<color name="ibc-stroke" value="0.15 0.15 0.18"/>
+<color name="ibc-warn" value="0.75 0.45 0.15"/>
+<pen name="ibc-main" value="0.6"/>
+<pen name="ibc-thin" value="0.45"/>
+<layout paper="460 300" origin="0 0" frame="460 300"/>
+</ipestyle>
+<page>
+<layer name="alpha"/>
+<layer name="ibc-meta" edit="no" snap="never" data="ibc1:eyJjcmVhdGVkX2J5IjoiaXBlLWJpbmRjcmFmdCIsInBhbGV0dGUiOiJwYXBlci1tdXRlZCIsInNjaGVtYSI6MSwic3R5bGVfaWQiOiJwYXBlci1kZWZhdWx0IiwidGV4X3Byb2ZpbGUiOiJwYXBlci1zZXJpZiJ9"/>
+<view layers="alpha" active="alpha"/>
+<group layer="alpha" custom="ibc1:eyJpZCI6ImRpc3AiLCJraW5kIjoibm9kZSIsInJvbGUiOiJjb250cm9sIiwic2NoZW1hIjoxLCJzaGFwZSI6InJvdW5kZWRfcmVjdCJ9">
+<path custom="ibc1:eyJpZCI6ImRpc3A6Ym9keSIsIm93bmVyIjoiZGlzcCIsInBhcnQiOiJib2R5Iiwic2NoZW1hIjoxfQ" stroke="ibc-stroke" fill="ibc-fill_control" pen="ibc-main">
+23 120 m
+87 120 l
+3 0 0 3 87 123 90 123 a
+90 147 l
+3 0 0 3 87 147 87 150 a
+23 150 l
+3 0 0 3 23 147 20 147 a
+20 123 l
+3 0 0 3 23 123 23 120 a
+h
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6ImRpc3A6bGFiZWwiLCJvd25lciI6ImRpc3AiLCJwYXJ0IjoibGFiZWwiLCJzY2hlbWEiOjF9" pos="55 135" stroke="black" type="label" width="39.686" height="5.535" depth="1.55" halign="center" valign="center" size="8">Dispatcher</text>
+</group>
+<group custom="ibc1:eyJpZCI6IncxIiwia2luZCI6Im5vZGUiLCJyb2xlIjoiY29tcHV0ZSIsInNjaGVtYSI6MSwic2hhcGUiOiJyZWN0In0">
+<path custom="ibc1:eyJpZCI6IncxOmJvZHkiLCJvd25lciI6IncxIiwicGFydCI6ImJvZHkiLCJzY2hlbWEiOjF9" stroke="ibc-stroke" fill="ibc-fill_compute" pen="ibc-main">
+140 232 m
+220 232 l
+220 260 l
+140 260 l
+h
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6IncxOmxhYmVsIiwib3duZXIiOiJ3MSIsInBhcnQiOiJsYWJlbCIsInNjaGVtYSI6MX0" pos="180 246" stroke="black" type="label" width="33.879" height="5.535" depth="0" halign="center" valign="center" size="8">Worker 1</text>
+</group>
+<group custom="ibc1:eyJpZCI6IncyIiwia2luZCI6Im5vZGUiLCJyb2xlIjoiY29tcHV0ZSIsInNjaGVtYSI6MSwic2hhcGUiOiJyZWN0In0">
+<path custom="ibc1:eyJpZCI6IncyOmJvZHkiLCJvd25lciI6IncyIiwicGFydCI6ImJvZHkiLCJzY2hlbWEiOjF9" stroke="ibc-stroke" fill="ibc-fill_compute" pen="ibc-main">
+140 177 m
+220 177 l
+220 205 l
+140 205 l
+h
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6IncyOmxhYmVsIiwib3duZXIiOiJ3MiIsInBhcnQiOiJsYWJlbCIsInNjaGVtYSI6MX0" pos="180 191" stroke="black" type="label" width="33.879" height="5.535" depth="0" halign="center" valign="center" size="8">Worker 2</text>
+</group>
+<group custom="ibc1:eyJpZCI6InczIiwia2luZCI6Im5vZGUiLCJyb2xlIjoiY29tcHV0ZSIsInNjaGVtYSI6MSwic2hhcGUiOiJyZWN0In0">
+<path custom="ibc1:eyJpZCI6InczOmJvZHkiLCJvd25lciI6InczIiwicGFydCI6ImJvZHkiLCJzY2hlbWEiOjF9" stroke="ibc-stroke" fill="ibc-fill_compute" pen="ibc-main">
+140 122 m
+220 122 l
+220 150 l
+140 150 l
+h
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6InczOmxhYmVsIiwib3duZXIiOiJ3MyIsInBhcnQiOiJsYWJlbCIsInNjaGVtYSI6MX0" pos="180 136" stroke="black" type="label" width="33.879" height="5.535" depth="0" halign="center" valign="center" size="8">Worker 3</text>
+</group>
+<group custom="ibc1:eyJpZCI6Inc0Iiwia2luZCI6Im5vZGUiLCJyb2xlIjoiY29tcHV0ZSIsInNjaGVtYSI6MSwic2hhcGUiOiJyZWN0In0">
+<path custom="ibc1:eyJpZCI6Inc0OmJvZHkiLCJvd25lciI6Inc0IiwicGFydCI6ImJvZHkiLCJzY2hlbWEiOjF9" stroke="ibc-stroke" fill="ibc-fill_compute" pen="ibc-main">
+140 67 m
+220 67 l
+220 95 l
+140 95 l
+h
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6Inc0OmxhYmVsIiwib3duZXIiOiJ3NCIsInBhcnQiOiJsYWJlbCIsInNjaGVtYSI6MX0" pos="180 81" stroke="black" type="label" width="33.879" height="5.535" depth="0" halign="center" valign="center" size="8">Worker 4</text>
+</group>
+<group custom="ibc1:eyJpZCI6ImpvaW4iLCJraW5kIjoibm9kZSIsInJvbGUiOiJjb250cm9sIiwic2NoZW1hIjoxLCJzaGFwZSI6ImRpYW1vbmQifQ">
+<path custom="ibc1:eyJpZCI6ImpvaW46Ym9keSIsIm93bmVyIjoiam9pbiIsInBhcnQiOiJib2R5Iiwic2NoZW1hIjoxfQ" stroke="ibc-stroke" fill="ibc-fill_control" pen="ibc-main">
+330 120 m
+360 135 l
+330 150 l
+300 135 l
+h
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6ImpvaW46bGFiZWwiLCJvd25lciI6ImpvaW4iLCJwYXJ0IjoibGFiZWwiLCJzY2hlbWEiOjF9" pos="330 135" stroke="black" type="label" width="15.639" height="5.446" depth="0" halign="center" valign="center" size="8">Join</text>
+</group>
+<group custom="ibc1:eyJpZCI6InNpbmsiLCJraW5kIjoibm9kZSIsInJvbGUiOiJpbyIsInNjaGVtYSI6MSwic2hhcGUiOiJlbGxpcHNlIn0">
+<path custom="ibc1:eyJpZCI6InNpbms6Ym9keSIsIm93bmVyIjoic2luayIsInBhcnQiOiJib2R5Iiwic2NoZW1hIjoxfQ" stroke="ibc-stroke" fill="ibc-fill_io" pen="ibc-main">
+22.5 0 0 15 422.5 135 e
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6InNpbms6bGFiZWwiLCJvd25lciI6InNpbmsiLCJwYXJ0IjoibGFiZWwiLCJzY2hlbWEiOjF9" pos="422.5 135" stroke="black" type="label" width="16.231" height="5.535" depth="0" halign="center" valign="center" size="8">Sink</text>
+</group>
+<path custom="ibc1:eyJpZCI6ImQxIiwia2luZCI6ImVkZ2UiLCJyb2xlIjoiIiwicm91dGluZyI6eyJtb2RlIjoic3RyYWlnaHQifSwic2NoZW1hIjoxLCJzb3VyY2UiOnsibm9kZSI6ImRpc3AiLCJvZmZzZXQiOm51bGwsInNpZGUiOiJlYXN0In0sInRhcmdldCI6eyJub2RlIjoidzEiLCJvZmZzZXQiOm51bGwsInNpZGUiOiJ3ZXN0In19" stroke="ibc-edge" pen="ibc-main" arrow="normal/ibc-arrow">
+90 135 m
+140 246 l
+</path>
+<path custom="ibc1:eyJpZCI6ImoxIiwia2luZCI6ImVkZ2UiLCJyb2xlIjoiIiwicm91dGluZyI6eyJtb2RlIjoic3RyYWlnaHQifSwic2NoZW1hIjoxLCJzb3VyY2UiOnsibm9kZSI6IncxIiwib2Zmc2V0IjpudWxsLCJzaWRlIjoiZWFzdCJ9LCJ0YXJnZXQiOnsibm9kZSI6ImpvaW4iLCJvZmZzZXQiOm51bGwsInNpZGUiOiJ3ZXN0In19" stroke="ibc-edge" pen="ibc-main" arrow="normal/ibc-arrow">
+220 246 m
+300 135 l
+</path>
+<path custom="ibc1:eyJpZCI6ImQyIiwia2luZCI6ImVkZ2UiLCJyb2xlIjoiIiwicm91dGluZyI6eyJtb2RlIjoic3RyYWlnaHQifSwic2NoZW1hIjoxLCJzb3VyY2UiOnsibm9kZSI6ImRpc3AiLCJvZmZzZXQiOm51bGwsInNpZGUiOiJlYXN0In0sInRhcmdldCI6eyJub2RlIjoidzIiLCJvZmZzZXQiOm51bGwsInNpZGUiOiJ3ZXN0In19" stroke="ibc-edge" pen="ibc-main" arrow="normal/ibc-arrow">
+90 135 m
+140 191 l
+</path>
+<path custom="ibc1:eyJpZCI6ImoyIiwia2luZCI6ImVkZ2UiLCJyb2xlIjoiIiwicm91dGluZyI6eyJtb2RlIjoic3RyYWlnaHQifSwic2NoZW1hIjoxLCJzb3VyY2UiOnsibm9kZSI6IncyIiwib2Zmc2V0IjpudWxsLCJzaWRlIjoiZWFzdCJ9LCJ0YXJnZXQiOnsibm9kZSI6ImpvaW4iLCJvZmZzZXQiOm51bGwsInNpZGUiOiJ3ZXN0In19" stroke="ibc-edge" pen="ibc-main" arrow="normal/ibc-arrow">
+220 191 m
+300 135 l
+</path>
+<path custom="ibc1:eyJpZCI6ImQzIiwia2luZCI6ImVkZ2UiLCJyb2xlIjoiIiwicm91dGluZyI6eyJtb2RlIjoic3RyYWlnaHQifSwic2NoZW1hIjoxLCJzb3VyY2UiOnsibm9kZSI6ImRpc3AiLCJvZmZzZXQiOm51bGwsInNpZGUiOiJlYXN0In0sInRhcmdldCI6eyJub2RlIjoidzMiLCJvZmZzZXQiOm51bGwsInNpZGUiOiJ3ZXN0In19" stroke="ibc-edge" pen="ibc-main" arrow="normal/ibc-arrow">
+90 135 m
+140 136 l
+</path>
+<path custom="ibc1:eyJpZCI6ImozIiwia2luZCI6ImVkZ2UiLCJyb2xlIjoiIiwicm91dGluZyI6eyJtb2RlIjoic3RyYWlnaHQifSwic2NoZW1hIjoxLCJzb3VyY2UiOnsibm9kZSI6InczIiwib2Zmc2V0IjpudWxsLCJzaWRlIjoiZWFzdCJ9LCJ0YXJnZXQiOnsibm9kZSI6ImpvaW4iLCJvZmZzZXQiOm51bGwsInNpZGUiOiJ3ZXN0In19" stroke="ibc-edge" pen="ibc-main" arrow="normal/ibc-arrow">
+220 136 m
+300 135 l
+</path>
+<path custom="ibc1:eyJpZCI6ImQ0Iiwia2luZCI6ImVkZ2UiLCJyb2xlIjoiIiwicm91dGluZyI6eyJtb2RlIjoic3RyYWlnaHQifSwic2NoZW1hIjoxLCJzb3VyY2UiOnsibm9kZSI6ImRpc3AiLCJvZmZzZXQiOm51bGwsInNpZGUiOiJlYXN0In0sInRhcmdldCI6eyJub2RlIjoidzQiLCJvZmZzZXQiOm51bGwsInNpZGUiOiJ3ZXN0In19" stroke="ibc-edge" pen="ibc-main" arrow="normal/ibc-arrow">
+90 135 m
+140 81 l
+</path>
+<path custom="ibc1:eyJpZCI6Imo0Iiwia2luZCI6ImVkZ2UiLCJyb2xlIjoiIiwicm91dGluZyI6eyJtb2RlIjoic3RyYWlnaHQifSwic2NoZW1hIjoxLCJzb3VyY2UiOnsibm9kZSI6Inc0Iiwib2Zmc2V0IjpudWxsLCJzaWRlIjoiZWFzdCJ9LCJ0YXJnZXQiOnsibm9kZSI6ImpvaW4iLCJvZmZzZXQiOm51bGwsInNpZGUiOiJ3ZXN0In19" stroke="ibc-edge" pen="ibc-main" arrow="normal/ibc-arrow">
+220 81 m
+300 135 l
+</path>
+<path custom="ibc1:eyJpZCI6Im91dCIsImtpbmQiOiJlZGdlIiwicm9sZSI6IiIsInJvdXRpbmciOnsibW9kZSI6InN0cmFpZ2h0In0sInNjaGVtYSI6MSwic291cmNlIjp7Im5vZGUiOiJqb2luIiwib2Zmc2V0IjpudWxsLCJzaWRlIjoiZWFzdCJ9LCJ0YXJnZXQiOnsibm9kZSI6InNpbmsiLCJvZmZzZXQiOm51bGwsInNpZGUiOiJ3ZXN0In19" stroke="ibc-edge" pen="ibc-main" arrow="normal/ibc-arrow">
+360 135 m
+400 135 l
+</path>
+</page>
+</ipe>

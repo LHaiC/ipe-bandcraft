@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<!DOCTYPE ipe SYSTEM "ipe.dtd">
+<ipe version="70218" creator="ipe-bindcraft 0.1">
+<ipestyle name="ibc-paper-default">
+<arrowsize name="ibc-arrow" value="3.2"/>
+<color name="ibc-accent" value="0.55 0.22 0.22"/>
+<color name="ibc-edge" value="0.3 0.3 0.34"/>
+<color name="ibc-fill_compute" value="0.87 0.91 0.95"/>
+<color name="ibc-fill_control" value="0.93 0.88 0.94"/>
+<color name="ibc-fill_data" value="0.88 0.93 0.87"/>
+<color name="ibc-fill_io" value="0.95 0.95 0.9"/>
+<color name="ibc-fill_memory" value="0.96 0.9 0.8"/>
+<color name="ibc-stroke" value="0.15 0.15 0.18"/>
+<color name="ibc-warn" value="0.75 0.45 0.15"/>
+<pen name="ibc-main" value="0.6"/>
+<pen name="ibc-thin" value="0.45"/>
+<layout paper="460 300" origin="0 0" frame="460 300"/>
+</ipestyle>
+<page>
+<layer name="alpha"/>
+<layer name="ibc-meta" edit="no" snap="never" data="ibc1:eyJjcmVhdGVkX2J5IjoiaXBlLWJpbmRjcmFmdCIsInBhbGV0dGUiOiJwYXBlci1tdXRlZCIsInNjaGVtYSI6MSwic3R5bGVfaWQiOiJwYXBlci1kZWZhdWx0IiwidGV4X3Byb2ZpbGUiOiJwYXBlci1zZXJpZiJ9"/>
+<view layers="alpha" active="alpha"/>
+<group layer="alpha" custom="ibc1:eyJpZCI6ImluaXQiLCJraW5kIjoibm9kZSIsInJvbGUiOiJkYXRhIiwic2NoZW1hIjoxLCJzaGFwZSI6InJlY3QifQ">
+<path custom="ibc1:eyJpZCI6ImluaXQ6Ym9keSIsIm93bmVyIjoiaW5pdCIsInBhcnQiOiJib2R5Iiwic2NoZW1hIjoxfQ" stroke="ibc-stroke" fill="ibc-fill_data" pen="ibc-main">
+20 144 m
+100 144 l
+100 180 l
+20 180 l
+h
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6ImluaXQ6bGFiZWwiLCJvd25lciI6ImluaXQiLCJwYXJ0IjoibGFiZWwiLCJzY2hlbWEiOjF9" pos="60 162" stroke="black" type="label" width="43.959" height="5.542" depth="1.1" halign="center" valign="center" size="8">Initialize $x_0$</text>
+</group>
+<group custom="ibc1:eyJpZCI6InN0ZXAiLCJraW5kIjoibm9kZSIsInJvbGUiOiJjb21wdXRlIiwic2NoZW1hIjoxLCJzaGFwZSI6InJvdW5kZWRfcmVjdCJ9">
+<path custom="ibc1:eyJpZCI6InN0ZXA6Ym9keSIsIm93bmVyIjoic3RlcCIsInBhcnQiOiJib2R5Iiwic2NoZW1hIjoxfQ" stroke="ibc-stroke" fill="ibc-fill_compute" pen="ibc-main">
+143 144 m
+227 144 l
+3 0 0 3 227 147 230 147 a
+230 177 l
+3 0 0 3 227 177 227 180 a
+143 180 l
+3 0 0 3 143 177 140 177 a
+140 147 l
+3 0 0 3 143 147 143 144 a
+h
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6InN0ZXA6bGFiZWwiLCJvd25lciI6InN0ZXAiLCJwYXJ0IjoibGFiZWwiLCJzY2hlbWEiOjF9" pos="185 162" stroke="black" type="label" width="46.104" height="5.452" depth="2.23" halign="center" valign="center" size="8">Iterate $x_{k+1}$</text>
+</group>
+<group custom="ibc1:eyJpZCI6InRlc3QiLCJraW5kIjoibm9kZSIsInJvbGUiOiJjb250cm9sIiwic2NoZW1hIjoxLCJzaGFwZSI6ImRpYW1vbmQifQ">
+<path custom="ibc1:eyJpZCI6InRlc3Q6Ym9keSIsIm93bmVyIjoidGVzdCIsInBhcnQiOiJib2R5Iiwic2NoZW1hIjoxfQ" stroke="ibc-stroke" fill="ibc-fill_control" pen="ibc-main">
+310 144 m
+350 162 l
+310 180 l
+270 162 l
+h
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6InRlc3Q6bGFiZWwiLCJvd25lciI6InRlc3QiLCJwYXJ0IjoibGFiZWwiLCJzY2hlbWEiOjF9" pos="310 162" stroke="black" type="label" width="27.475" height="5.98" depth="1.99" halign="center" valign="center" size="8">$|r| &lt; \epsilon$?</text>
+</group>
+<group custom="ibc1:eyJpZCI6ImRvbmUiLCJraW5kIjoibm9kZSIsInJvbGUiOiJpbyIsInNjaGVtYSI6MSwic2hhcGUiOiJlbGxpcHNlIn0">
+<path custom="ibc1:eyJpZCI6ImRvbmU6Ym9keSIsIm93bmVyIjoiZG9uZSIsInBhcnQiOiJib2R5Iiwic2NoZW1hIjoxfQ" stroke="ibc-stroke" fill="ibc-fill_io" pen="ibc-main">
+30 0 0 18 415 162 e
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6ImRvbmU6bGFiZWwiLCJvd25lciI6ImRvbmUiLCJwYXJ0IjoibGFiZWwiLCJzY2hlbWEiOjF9" pos="415 162" stroke="black" type="label" width="19.167" height="5.446" depth="0" halign="center" valign="center" size="8">Done</text>
+</group>
+<group custom="ibc1:eyJpZCI6InJlZmluZSIsImtpbmQiOiJub2RlIiwicm9sZSI6Im1lbW9yeSIsInNjaGVtYSI6MSwic2hhcGUiOiJyZWN0In0">
+<path custom="ibc1:eyJpZCI6InJlZmluZTpib2R5Iiwib3duZXIiOiJyZWZpbmUiLCJwYXJ0IjoiYm9keSIsInNjaGVtYSI6MX0" stroke="ibc-stroke" fill="ibc-fill_memory" pen="ibc-main">
+140 50 m
+230 50 l
+230 80 l
+140 80 l
+h
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6InJlZmluZTpsYWJlbCIsIm93bmVyIjoicmVmaW5lIiwicGFydCI6ImxhYmVsIiwic2NoZW1hIjoxfQ" pos="185 65" stroke="black" type="label" width="44.855" height="5.535" depth="0" halign="center" valign="center" size="8">Refine mesh</text>
+</group>
+<path custom="ibc1:eyJpZCI6ImYxIiwia2luZCI6ImVkZ2UiLCJyb2xlIjoiIiwicm91dGluZyI6eyJtb2RlIjoic3RyYWlnaHQifSwic2NoZW1hIjoxLCJzb3VyY2UiOnsibm9kZSI6ImluaXQiLCJvZmZzZXQiOm51bGwsInNpZGUiOiJlYXN0In0sInRhcmdldCI6eyJub2RlIjoic3RlcCIsIm9mZnNldCI6bnVsbCwic2lkZSI6Indlc3QifX0" stroke="ibc-edge" pen="ibc-main" arrow="normal/ibc-arrow">
+100 162 m
+140 162 l
+</path>
+<group custom="ibc1:eyJpZCI6ImYyIiwia2luZCI6ImVkZ2UiLCJyb2xlIjoiIiwicm91dGluZyI6eyJtb2RlIjoic3RyYWlnaHQifSwic2NoZW1hIjoxLCJzb3VyY2UiOnsibm9kZSI6InN0ZXAiLCJvZmZzZXQiOm51bGwsInNpZGUiOiJlYXN0In0sInRhcmdldCI6eyJub2RlIjoidGVzdCIsIm9mZnNldCI6bnVsbCwic2lkZSI6Indlc3QifX0">
+<path custom="ibc1:eyJpZCI6ImYyOnBhdGgiLCJvd25lciI6ImYyIiwicGFydCI6InBhdGgiLCJzY2hlbWEiOjF9" stroke="ibc-edge" pen="ibc-main" arrow="normal/ibc-arrow">
+230 162 m
+270 162 l
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6ImYyOmxhYmVsIiwib3duZXIiOiJmMiIsInBhcnQiOiJsYWJlbCIsInNjaGVtYSI6MX0" pos="250 162" stroke="black" type="label" width="3.113" height="3.003" depth="0" halign="center" valign="bottom" size="7">r</text>
+</group>
+<group custom="ibc1:eyJpZCI6ImYzIiwia2luZCI6ImVkZ2UiLCJyb2xlIjoiIiwicm91dGluZyI6eyJtb2RlIjoic3RyYWlnaHQifSwic2NoZW1hIjoxLCJzb3VyY2UiOnsibm9kZSI6InRlc3QiLCJvZmZzZXQiOm51bGwsInNpZGUiOiJlYXN0In0sInRhcmdldCI6eyJub2RlIjoiZG9uZSIsIm9mZnNldCI6bnVsbCwic2lkZSI6Indlc3QifX0">
+<path custom="ibc1:eyJpZCI6ImYzOnBhdGgiLCJvd25lciI6ImYzIiwicGFydCI6InBhdGgiLCJzY2hlbWEiOjF9" stroke="ibc-edge" pen="ibc-main" arrow="normal/ibc-arrow">
+350 162 m
+385 162 l
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6ImYzOmxhYmVsIiwib3duZXIiOiJmMyIsInBhcnQiOiJsYWJlbCIsInNjaGVtYSI6MX0" pos="367.5 162" stroke="black" type="label" width="10.67" height="3.009" depth="1.35" halign="center" valign="bottom" size="7">yes</text>
+</group>
+<path custom="ibc1:eyJpZCI6ImY0Iiwia2luZCI6ImVkZ2UiLCJyb2xlIjoiIiwicm91dGluZyI6eyJtb2RlIjoibWFudWFsIiwid2F5cG9pbnRzIjpbWzMxMC4wLDIzNS4wXV19LCJzY2hlbWEiOjEsInNvdXJjZSI6eyJub2RlIjoidGVzdCIsIm9mZnNldCI6bnVsbCwic2lkZSI6InNvdXRoIn0sInRhcmdldCI6eyJub2RlIjoicmVmaW5lIiwib2Zmc2V0IjpudWxsLCJzaWRlIjoiZWFzdCJ9fQ" stroke="ibc-edge" pen="ibc-main" arrow="normal/ibc-arrow">
+310 144 m
+310 65 l
+230 65 l
+</path>
+<group custom="ibc1:eyJpZCI6ImY1Iiwia2luZCI6ImVkZ2UiLCJyb2xlIjoiIiwicm91dGluZyI6eyJtb2RlIjoib3J0aG9nb25hbCJ9LCJzY2hlbWEiOjEsInNvdXJjZSI6eyJub2RlIjoicmVmaW5lIiwib2Zmc2V0IjpudWxsLCJzaWRlIjoid2VzdCJ9LCJ0YXJnZXQiOnsibm9kZSI6InN0ZXAiLCJvZmZzZXQiOm51bGwsInNpZGUiOiJzb3V0aCJ9fQ">
+<path custom="ibc1:eyJpZCI6ImY1OnBhdGgiLCJvd25lciI6ImY1IiwicGFydCI6InBhdGgiLCJzY2hlbWEiOjF9" stroke="ibc-edge" pen="ibc-main" arrow="normal/ibc-arrow">
+140 65 m
+185 144 l
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6ImY1OmxhYmVsIiwib3duZXIiOiJmNSIsInBhcnQiOiJsYWJlbCIsInNjaGVtYSI6MX0" pos="162.5 104.5" stroke="black" type="label" width="8.371" height="3.003" depth="0" halign="center" valign="bottom" size="7">no</text>
+</group>
+</page>
+</ipe>

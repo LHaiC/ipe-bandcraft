@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<!DOCTYPE ipe SYSTEM "ipe.dtd">
+<ipe version="70218" creator="ipe-bindcraft 0.1">
+<ipestyle name="ibc-paper-default">
+<arrowsize name="ibc-arrow" value="3.2"/>
+<color name="ibc-accent" value="0.55 0.22 0.22"/>
+<color name="ibc-edge" value="0.3 0.3 0.34"/>
+<color name="ibc-fill_compute" value="0.87 0.91 0.95"/>
+<color name="ibc-fill_control" value="0.93 0.88 0.94"/>
+<color name="ibc-fill_data" value="0.88 0.93 0.87"/>
+<color name="ibc-fill_io" value="0.95 0.95 0.9"/>
+<color name="ibc-fill_memory" value="0.96 0.9 0.8"/>
+<color name="ibc-stroke" value="0.15 0.15 0.18"/>
+<color name="ibc-warn" value="0.75 0.45 0.15"/>
+<pen name="ibc-main" value="0.6"/>
+<pen name="ibc-thin" value="0.45"/>
+<layout paper="460 300" origin="0 0" frame="460 300"/>
+</ipestyle>
+<page>
+<layer name="alpha"/>
+<layer name="ibc-meta" edit="no" snap="never" data="ibc1:eyJjcmVhdGVkX2J5IjoiaXBlLWJpbmRjcmFmdCIsInBhbGV0dGUiOiJwYXBlci1tdXRlZCIsInNjaGVtYSI6MSwic3R5bGVfaWQiOiJwYXBlci1kZWZhdWx0IiwidGV4X3Byb2ZpbGUiOiJwYXBlci1zZXJpZiJ9"/>
+<view layers="alpha" active="alpha"/>
+<group layer="alpha" custom="ibc1:eyJpZCI6InNyYyIsImtpbmQiOiJub2RlIiwicm9sZSI6ImlvIiwic2NoZW1hIjoxLCJzaGFwZSI6InJlY3QifQ">
+<path custom="ibc1:eyJpZCI6InNyYzpib2R5Iiwib3duZXIiOiJzcmMiLCJwYXJ0IjoiYm9keSIsInNjaGVtYSI6MX0" stroke="ibc-stroke" fill="ibc-fill_io" pen="ibc-main">
+20 140 m
+80 140 l
+80 170 l
+20 170 l
+h
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6InNyYzpsYWJlbCIsIm93bmVyIjoic3JjIiwicGFydCI6ImxhYmVsIiwic2NoZW1hIjoxfQ" pos="50 155" stroke="black" type="label" width="20.457" height="5.446" depth="1.55" halign="center" valign="center" size="8">Input</text>
+</group>
+<group custom="ibc1:eyJpZCI6InBhcnNlIiwia2luZCI6Im5vZGUiLCJyb2xlIjoiY29tcHV0ZSIsInNjaGVtYSI6MSwic2hhcGUiOiJyb3VuZGVkX3JlY3QifQ">
+<path custom="ibc1:eyJpZCI6InBhcnNlOmJvZHkiLCJvd25lciI6InBhcnNlIiwicGFydCI6ImJvZHkiLCJzY2hlbWEiOjF9" stroke="ibc-stroke" fill="ibc-fill_compute" pen="ibc-main">
+113 230 m
+177 230 l
+3 0 0 3 177 233 180 233 a
+180 257 l
+3 0 0 3 177 257 177 260 a
+113 260 l
+3 0 0 3 113 257 110 257 a
+110 233 l
+3 0 0 3 113 233 113 230 a
+h
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6InBhcnNlOmxhYmVsIiwib3duZXIiOiJwYXJzZSIsInBhcnQiOiJsYWJlbCIsInNjaGVtYSI6MX0" pos="145 245" stroke="black" type="label" width="23.462" height="5.446" depth="0" halign="center" valign="center" size="8">Parser</text>
+</group>
+<group custom="ibc1:eyJpZCI6InZhbGlkIiwia2luZCI6Im5vZGUiLCJyb2xlIjoiY29tcHV0ZSIsInNjaGVtYSI6MSwic2hhcGUiOiJyb3VuZGVkX3JlY3QifQ">
+<path custom="ibc1:eyJpZCI6InZhbGlkOmJvZHkiLCJvd25lciI6InZhbGlkIiwicGFydCI6ImJvZHkiLCJzY2hlbWEiOjF9" stroke="ibc-stroke" fill="ibc-fill_compute" pen="ibc-main">
+113 140 m
+177 140 l
+3 0 0 3 177 143 180 143 a
+180 167 l
+3 0 0 3 177 167 177 170 a
+113 170 l
+3 0 0 3 113 167 110 167 a
+110 143 l
+3 0 0 3 113 143 113 140 a
+h
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6InZhbGlkOmxhYmVsIiwib3duZXIiOiJ2YWxpZCIsInBhcnQiOiJsYWJlbCIsInNjaGVtYSI6MX0" pos="145 155" stroke="black" type="label" width="34.343" height="5.535" depth="0" halign="center" valign="center" size="8">Validator</text>
+</group>
+<group custom="ibc1:eyJpZCI6InN0b3JlIiwia2luZCI6Im5vZGUiLCJyb2xlIjoibWVtb3J5Iiwic2NoZW1hIjoxLCJzaGFwZSI6InJlY3QifQ">
+<path custom="ibc1:eyJpZCI6InN0b3JlOmJvZHkiLCJvd25lciI6InN0b3JlIiwicGFydCI6ImJvZHkiLCJzY2hlbWEiOjF9" stroke="ibc-stroke" fill="ibc-fill_memory" pen="ibc-main">
+210 230 m
+280 230 l
+280 260 l
+210 260 l
+h
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6InN0b3JlOmxhYmVsIiwib3duZXIiOiJzdG9yZSIsInBhcnQiOiJsYWJlbCIsInNjaGVtYSI6MX0" pos="245 245" stroke="black" type="label" width="27.764" height="5.446" depth="1.55" halign="center" valign="center" size="8">Storage</text>
+</group>
+<group custom="ibc1:eyJpZCI6ImNhY2hlIiwia2luZCI6Im5vZGUiLCJyb2xlIjoibWVtb3J5Iiwic2NoZW1hIjoxLCJzaGFwZSI6InJlY3QifQ">
+<path custom="ibc1:eyJpZCI6ImNhY2hlOmJvZHkiLCJvd25lciI6ImNhY2hlIiwicGFydCI6ImJvZHkiLCJzY2hlbWEiOjF9" stroke="ibc-stroke" fill="ibc-fill_memory" pen="ibc-main">
+210 140 m
+280 140 l
+280 170 l
+210 170 l
+h
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6ImNhY2hlOmxhYmVsIiwib3duZXIiOiJjYWNoZSIsInBhcnQiOiJsYWJlbCIsInNjaGVtYSI6MX0" pos="245 155" stroke="black" type="label" width="22.347" height="5.535" depth="0" halign="center" valign="center" size="8">Cache</text>
+</group>
+<group custom="ibc1:eyJpZCI6ImFnZyIsImtpbmQiOiJub2RlIiwicm9sZSI6ImNvbnRyb2wiLCJzY2hlbWEiOjEsInNoYXBlIjoiZGlhbW9uZCJ9">
+<path custom="ibc1:eyJpZCI6ImFnZzpib2R5Iiwib3duZXIiOiJhZ2ciLCJwYXJ0IjoiYm9keSIsInNjaGVtYSI6MX0" stroke="ibc-stroke" fill="ibc-fill_control" pen="ibc-main">
+345 185 m
+380 200 l
+345 215 l
+310 200 l
+h
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6ImFnZzpsYWJlbCIsIm93bmVyIjoiYWdnIiwicGFydCI6ImxhYmVsIiwic2NoZW1hIjoxfQ" pos="345 200" stroke="black" type="label" width="41.171" height="5.446" depth="1.55" halign="center" valign="center" size="8">Aggregator</text>
+</group>
+<group custom="ibc1:eyJpZCI6ImF1ZGl0Iiwia2luZCI6Im5vZGUiLCJyb2xlIjoiZGF0YSIsInNjaGVtYSI6MSwic2hhcGUiOiJyZWN0In0">
+<path custom="ibc1:eyJpZCI6ImF1ZGl0OmJvZHkiLCJvd25lciI6ImF1ZGl0IiwicGFydCI6ImJvZHkiLCJzY2hlbWEiOjF9" stroke="ibc-stroke" fill="ibc-fill_data" pen="ibc-main">
+210 50 m
+280 50 l
+280 80 l
+210 80 l
+h
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6ImF1ZGl0OmxhYmVsIiwib3duZXIiOiJhdWRpdCIsInBhcnQiOiJsYWJlbCIsInNjaGVtYSI6MX0" pos="245 65" stroke="black" type="label" width="37.978" height="5.535" depth="1.55" halign="center" valign="center" size="8">Audit Log</text>
+</group>
+<group custom="ibc1:eyJpZCI6Im91dCIsImtpbmQiOiJub2RlIiwicm9sZSI6ImlvIiwic2NoZW1hIjoxLCJzaGFwZSI6ImVsbGlwc2UifQ">
+<path custom="ibc1:eyJpZCI6Im91dDpib2R5Iiwib3duZXIiOiJvdXQiLCJwYXJ0IjoiYm9keSIsInNjaGVtYSI6MX0" stroke="ibc-stroke" fill="ibc-fill_io" pen="ibc-main">
+25 0 0 15 420 200 e
+</path>
+<text transformations="translations" custom="ibc1:eyJpZCI6Im91dDpsYWJlbCIsIm93bmVyIjoib3V0IiwicGFydCI6ImxhYmVsIiwic2NoZW1hIjoxfQ" pos="420 200" stroke="black" type="label" width="14.584" height="5.446" depth="0" halign="center" valign="center" size="8">Out</text>
+</group>
+<path custom="ibc1:eyJpZCI6ImUxIiwia2luZCI6ImVkZ2UiLCJyb2xlIjoiIiwicm91dGluZyI6eyJtb2RlIjoic3RyYWlnaHQifSwic2NoZW1hIjoxLCJzb3VyY2UiOnsibm9kZSI6InNyYyIsIm9mZnNldCI6bnVsbCwic2lkZSI6ImVhc3QifSwidGFyZ2V0Ijp7Im5vZGUiOiJwYXJzZSIsIm9mZnNldCI6bnVsbCwic2lkZSI6Indlc3QifX0" stroke="ibc-edge" pen="ibc-main" arrow="normal/ibc-arrow">
+80 155 m
+110 245 l
+</path>
+<path custom="ibc1:eyJpZCI6ImUyIiwia2luZCI6ImVkZ2UiLCJyb2xlIjoiIiwicm91dGluZyI6eyJtb2RlIjoic3RyYWlnaHQifSwic2NoZW1hIjoxLCJzb3VyY2UiOnsibm9kZSI6InNyYyIsIm9mZnNldCI6bnVsbCwic2lkZSI6ImVhc3QifSwidGFyZ2V0Ijp7Im5vZGUiOiJ2YWxpZCIsIm9mZnNldCI6bnVsbCwic2lkZSI6Indlc3QifX0" stroke="ibc-edge" pen="ibc-main" arrow="normal/ibc-arrow">
+80 155 m
+110 155 l
+</path>
+<path custom="ibc1:eyJpZCI6ImUzIiwia2luZCI6ImVkZ2UiLCJyb2xlIjoiIiwicm91dGluZyI6eyJtb2RlIjoic3RyYWlnaHQifSwic2NoZW1hIjoxLCJzb3VyY2UiOnsibm9kZSI6InBhcnNlIiwib2Zmc2V0IjpudWxsLCJzaWRlIjoiZWFzdCJ9LCJ0YXJnZXQiOnsibm9kZSI6InN0b3JlIiwib2Zmc2V0IjpudWxsLCJzaWRlIjoid2VzdCJ9fQ" stroke="ibc-edge" pen="ibc-main" arrow="normal/ibc-arrow">
+180 245 m
+210 245 l
+</path>
+<path custom="ibc1:eyJpZCI6ImU0Iiwia2luZCI6ImVkZ2UiLCJyb2xlIjoiIiwicm91dGluZyI6eyJtb2RlIjoic3RyYWlnaHQifSwic2NoZW1hIjoxLCJzb3VyY2UiOnsibm9kZSI6InZhbGlkIiwib2Zmc2V0IjpudWxsLCJzaWRlIjoiZWFzdCJ9LCJ0YXJnZXQiOnsibm9kZSI6ImNhY2hlIiwib2Zmc2V0IjpudWxsLCJzaWRlIjoid2VzdCJ9fQ" stroke="ibc-edge" pen="ibc-main" arrow="normal/ibc-arrow">
+180 155 m
+210 155 l
+</path>
+<path custom="ibc1:eyJpZCI6ImU1Iiwia2luZCI6ImVkZ2UiLCJyb2xlIjoiIiwicm91dGluZyI6eyJtb2RlIjoic3RyYWlnaHQifSwic2NoZW1hIjoxLCJzb3VyY2UiOnsibm9kZSI6InN0b3JlIiwib2Zmc2V0IjpudWxsLCJzaWRlIjoiZWFzdCJ9LCJ0YXJnZXQiOnsibm9kZSI6ImFnZyIsIm9mZnNldCI6bnVsbCwic2lkZSI6Indlc3QifX0" stroke="ibc-edge" pen="ibc-main" arrow="normal/ibc-arrow">
+280 245 m
+310 200 l
+</path>
+<path custom="ibc1:eyJpZCI6ImU2Iiwia2luZCI6ImVkZ2UiLCJyb2xlIjoiIiwicm91dGluZyI6eyJtb2RlIjoic3RyYWlnaHQifSwic2NoZW1hIjoxLCJzb3VyY2UiOnsibm9kZSI6ImNhY2hlIiwib2Zmc2V0IjpudWxsLCJzaWRlIjoiZWFzdCJ9LCJ0YXJnZXQiOnsibm9kZSI6ImFnZyIsIm9mZnNldCI6bnVsbCwic2lkZSI6Indlc3QifX0" stroke="ibc-edge" pen="ibc-main" arrow="normal/ibc-arrow">
+280 155 m
+310 200 l
+</path>
+<path custom="ibc1:eyJpZCI6ImU3Iiwia2luZCI6ImVkZ2UiLCJyb2xlIjoiIiwicm91dGluZyI6eyJtb2RlIjoic3RyYWlnaHQifSwic2NoZW1hIjoxLCJzb3VyY2UiOnsibm9kZSI6ImFnZyIsIm9mZnNldCI6bnVsbCwic2lkZSI6ImVhc3QifSwidGFyZ2V0Ijp7Im5vZGUiOiJvdXQiLCJvZmZzZXQiOm51bGwsInNpZGUiOiJ3ZXN0In19" stroke="ibc-edge" pen="ibc-main" arrow="normal/ibc-arrow">
+380 200 m
+395 200 l
+</path>
+<path custom="ibc1:eyJpZCI6ImU4Iiwia2luZCI6ImVkZ2UiLCJyb2xlIjoiIiwicm91dGluZyI6eyJtb2RlIjoib3J0aG9nb25hbCJ9LCJzY2hlbWEiOjEsInNvdXJjZSI6eyJub2RlIjoidmFsaWQiLCJvZmZzZXQiOm51bGwsInNpZGUiOiJzb3V0aCJ9LCJ0YXJnZXQiOnsibm9kZSI6ImF1ZGl0Iiwib2Zmc2V0IjpudWxsLCJzaWRlIjoibm9ydGgifX0" stroke="ibc-edge" pen="ibc-main" arrow="normal/ibc-arrow">
+145 140 m
+245 80 l
+</path>
+</page>
+</ipe>
