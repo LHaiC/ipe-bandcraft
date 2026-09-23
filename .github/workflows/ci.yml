@@ -37,14 +37,31 @@ jobs:
         run: winget install --id OtfriedCheong.Ipe -e --accept-source-agreements --accept-package-agreements --disable-interactivity
         continue-on-error: true
       - name: Install MiKTeX
-        run: winget install --id MiKTeX.MiKTeX -e --accept-source-agreements --accept-package-agreements --disable-interactivity
+        shell: pwsh
         continue-on-error: true
-      - run: uv sync --locked
-      - name: Doctor + integration tests (PATH refreshed for winget installs)
+        run: |
+          winget install --id MiKTeX.MiKTeX -e --accept-source-agreements --accept-package-agreements --disable-interactivity
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "winget MiKTeX failed ($LASTEXITCODE); falling back to chocolatey"
+            choco install miktex -y --no-progress
+          }
+      - name: Refresh PATH and enable MiKTeX auto-install
         shell: pwsh
         run: |
-          # winget-installed tools land in User/Machine PATH, which the
-          # already-running runner process does not see — re-read it here.
+          # winget/choco installs update User/Machine PATH, which the
+          # already-running runner process does not see — re-read it.
+          $env:PATH = [Environment]::GetEnvironmentVariable("PATH","Machine") +
+                      ";" + [Environment]::GetEnvironmentVariable("PATH","User")
+          if (Get-Command initexmf -ErrorAction SilentlyContinue) {
+            # on-the-fly package install must be non-interactive in CI
+            initexmf --set-config-value="[MPM]AutoInstall=1"
+          } else {
+            Write-Host "initexmf not found on PATH — pdflatex will be unavailable"
+          }
+      - run: uv sync --locked
+      - name: Doctor + integration tests
+        shell: pwsh
+        run: |
           $env:PATH = [Environment]::GetEnvironmentVariable("PATH","Machine") +
                       ";" + [Environment]::GetEnvironmentVariable("PATH","User")
           uv run ipe-bindcraft doctor

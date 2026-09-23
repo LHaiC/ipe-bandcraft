@@ -29,6 +29,9 @@ TOOLS = discovery.discover()
 requires_ipe = pytest.mark.skipif(
     not (TOOLS.ipetoipe and TOOLS.iperender and TOOLS.ipescript),
     reason="Ipe tools not found")
+requires_tex = pytest.mark.skipif(
+    not (TOOLS.tex.get("pdflatex") and TOOLS.tex["pdflatex"].found),
+    reason="pdflatex not found; LaTeX measurement unavailable")
 
 
 def apply(svc, did, rev, rid, ops, dry_run=False):
@@ -43,6 +46,7 @@ NODE = lambda oid, x, y: {"op": "node.create", "id": oid, "shape": "rect",
 
 
 @requires_ipe
+@requires_tex
 def test_full_chain(tmp_path):
     svc = Service(TOOLS)
     doc = svc.create_document(str(tmp_path / "fig.ipe"), 400, 300, "paper-default")
@@ -140,6 +144,7 @@ def test_file_lock_blocks_second_writer(tmp_path):
 
 
 @requires_ipe
+@requires_tex
 def test_tex_failure_fails_fast(tmp_path):
     svc = Service(TOOLS)
     doc = svc.create_document(str(tmp_path / "f.ipe"), 400, 300, "paper-default")
