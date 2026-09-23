@@ -22,9 +22,15 @@ from dataclasses import dataclass, field
 from .coordinates import Box, Point, fmt, to_ipe
 from .errors import OpError
 from . import geometry as geo
-from .snapshot import EdgeObj, NodeObj, SceneSnapshot
+from .snapshot import EdgeObj, NodeObj, SceneSnapshot, path_subpaths
 
 GAP = 8.0  # bp clearance from node outline for orthogonal channels
+
+# hop-over arcs at edge crossings
+HOP_R = 3.5          # hop radius (bp)
+HOP_CLEAR_BP = 8.0   # no hop within this arc-length distance of an endpoint
+HOP_MIN_SIN = 0.25   # skip near-parallel crossings (< ~15 deg)
+HOP_MAX_PER_EDGE = 8
 
 
 @dataclass
@@ -145,32 +151,183 @@ def reroute_stale_edges(doc, snap: SceneSnapshot,
 
     Also reroutes any edge whose endpoint node is in `changed` even if the flag
     was not set (defensive double-check for incremental invalidation).
+
+    After routing, a global crossing pass bakes hop-over arcs into the
+    topmost edge at each proper interior crossing. Edge metadata keeps the
+    canonical (hop-free) polyline in ``polyline`` and the hop count in
+    ``hops`` so later passes re-derive hops deterministically and stale hops
+    are removed automatically.
     """
+    from .metadata import encode_meta
     changed = changed or set()
-    n_routed, warns = 0, []
+    warns: list[str] = []
+    canonical: dict[str, list[Point]] = {}
+    dirty_ids: set[str] = set()
+
     for eid, edge in snap.edges.items():
+        if edge.path_el is None:
+            continue
         dirty = edge.needs_route or (
             edge.source.get("node") in changed or edge.target.get("node") in changed)
-        if not dirty or edge.path_el is None:
+        if dirty:
+            rr = route_edge(edge, snap)
+            canonical[eid] = rr.points
+            dirty_ids.add(eid)
+            warns.extend(f"{eid}: {w}" for w in rr.warnings)
+        else:
+            mp = edge.meta.get("polyline")
+            if mp:
+                canonical[eid] = [Point(float(p[0]), float(p[1])) for p in mp]
+            else:
+                canonical[eid] = _flatten_polyline(edge.path_el, snap.page_h)
+
+    hop_map = _detect_hops(snap, canonical)
+
+    n_routed = 0
+    for eid, edge in snap.edges.items():
+        if edge.path_el is None or eid not in canonical:
             continue
-        rr = route_edge(edge, snap)
-        edge.path_el.text = "\n" + polyline_to_ipe(rr.points, snap.page_h) + "\n"
-        # bake any matrix on the path element: we just wrote absolute coords
-        if "matrix" in edge.path_el.attrib:
-            del edge.path_el.attrib["matrix"]
-        warns.extend(f"{eid}: {w}" for w in rr.warnings)
-        # clear the flag in metadata
-        from .metadata import encode_meta
+        hops = hop_map.get(eid, [])
+        hop_pts = [[round(c.x, 2), round(c.y, 2)] for _, _, c in hops]
         meta = dict(edge.meta)
-        meta.pop("needs_route", None)
-        edge.el.set("custom", encode_meta(meta))
-        # reposition edge label to polyline midpoint
-        if edge.label_el is not None and len(rr.points) >= 2:
-            mid = _polyline_midpoint(rr.points)
-            ip = to_ipe(mid, snap.page_h)
-            edge.label_el.set("pos", f"{fmt(ip.x)} {fmt(ip.y)}")
-        n_routed += 1
+        if eid in dirty_ids:
+            pts = _insert_hops(canonical[eid], hops)
+            edge.path_el.text = "\n" + polyline_to_ipe(pts, snap.page_h) + "\n"
+            # we wrote absolute coords; any stale matrix must go
+            if "matrix" in edge.path_el.attrib:
+                del edge.path_el.attrib["matrix"]
+            meta["polyline"] = [[round(p.x, 4), round(p.y, 4)] for p in canonical[eid]]
+            _set_hop_meta(meta, hop_pts)
+            meta.pop("needs_route", None)
+            if edge.label_el is not None and len(canonical[eid]) >= 2:
+                mid = _polyline_midpoint(canonical[eid])
+                ip = to_ipe(mid, snap.page_h)
+                edge.label_el.set("pos", f"{fmt(ip.x)} {fmt(ip.y)}")
+            edge.el.set("custom", encode_meta(meta))
+            n_routed += 1
+        else:
+            # clean edge: preserve any human edits — only rewrite the path
+            # when the hop set actually changed; otherwise leave the body
+            # alone and just refresh the canonical polyline bookkeeping.
+            hop_changed = meta.get("hop_pts", []) != hop_pts
+            if hop_changed:
+                pts = _insert_hops(canonical[eid], hops)
+                edge.path_el.text = ("\n" + polyline_to_ipe(pts, snap.page_h)
+                                     + "\n")
+                if "matrix" in edge.path_el.attrib:
+                    del edge.path_el.attrib["matrix"]
+                _set_hop_meta(meta, hop_pts)
+                edge.el.set("custom", encode_meta(meta))
+            elif "polyline" not in meta:
+                # capture current (possibly human-edited) geometry once
+                meta["polyline"] = [[round(p.x, 4), round(p.y, 4)]
+                                    for p in canonical[eid]]
+                edge.el.set("custom", encode_meta(meta))
     return n_routed, warns
+
+
+def _set_hop_meta(meta: dict, hop_pts: list) -> None:
+    if hop_pts:
+        meta["hops"] = len(hop_pts)
+        meta["hop_pts"] = hop_pts
+    else:
+        meta.pop("hops", None)
+        meta.pop("hop_pts", None)
+
+
+def _flatten_polyline(el, page_h: float) -> list[Point]:
+    """Best-effort canonical polyline from a baked path element (API space)."""
+    pts: list[Point] = []
+    for s in path_subpaths(el, page_h):
+        pts.extend(Point(x, y) for x, y in s.pts)
+    return pts
+
+
+def _detect_hops(snap: SceneSnapshot,
+                 canonical: dict[str, list[Point]]) -> dict[str, list[tuple]]:
+    """Find interior crossings between managed edges.
+
+    Returns {edge_id: [(seg_index, t, Point), ...]} for the edge that hops
+    (the one drawn on top = later in page child order). Edges sharing an
+    endpoint node never hop over each other (they legitimately meet).
+    """
+    from collections import defaultdict
+    edges = [(eid, e) for eid, e in snap.edges.items()
+             if e.path_el is not None and len(canonical.get(eid, [])) >= 2]
+    order = {id(el): idx for idx, el in enumerate(snap.doc.page.iterchildren())}
+    hops: dict[str, list[tuple]] = defaultdict(list)
+    for i in range(len(edges)):
+        for j in range(i + 1, len(edges)):
+            id_a, ea = edges[i]
+            id_b, eb = edges[j]
+            shared = {ea.source.get("node"), ea.target.get("node")} & \
+                     {eb.source.get("node"), eb.target.get("node")}
+            if shared:
+                continue
+            pa, pb = canonical[id_a], canonical[id_b]
+            hits_a, hits_b = [], []
+            for si in range(len(pa) - 1):
+                for sj in range(len(pb) - 1):
+                    r = geo.seg_seg_intersection(
+                        (pa[si].x, pa[si].y), (pa[si + 1].x, pa[si + 1].y),
+                        (pb[sj].x, pb[sj].y), (pb[sj + 1].x, pb[sj + 1].y))
+                    if r is None or r[2] < HOP_MIN_SIN:
+                        continue
+                    cx = pa[si].x + (pa[si + 1].x - pa[si].x) * r[0]
+                    cy = pa[si].y + (pa[si + 1].y - pa[si].y) * r[0]
+                    hits_a.append((si, r[0], Point(cx, cy)))
+                    hits_b.append((sj, r[1], Point(cx, cy)))
+            if not hits_a:
+                continue
+            # the edge drawn on top (later in child order) jumps over
+            if order.get(id(ea.el), 0) > order.get(id(eb.el), 0):
+                hops[id_a].extend(hits_a)
+            else:
+                hops[id_b].extend(hits_b)
+    # clearance from endpoints + per-edge cap
+    out: dict[str, list[tuple]] = {}
+    for eid, hits in hops.items():
+        poly = canonical[eid]
+        cum = [0.0]
+        for k in range(len(poly) - 1):
+            cum.append(cum[-1] + _dist(poly[k], poly[k + 1]))
+        total = cum[-1]
+        kept = []
+        for si, t, c in hits:
+            d0 = cum[si] + t * _dist(poly[si], poly[si + 1])
+            if d0 >= HOP_CLEAR_BP and total - d0 >= HOP_CLEAR_BP:
+                kept.append((si, t, c))
+        out[eid] = kept[:HOP_MAX_PER_EDGE]
+    return out
+
+
+def _insert_hops(pts: list[Point], hops: list[tuple]) -> list[Point]:
+    """Insert a semicircular hop (polyline-approximated) at each crossing."""
+    if not hops or len(pts) < 2:
+        return pts
+    by_seg: dict[int, list[tuple]] = {}
+    for h in hops:
+        by_seg.setdefault(h[0], []).append(h)
+    out: list[Point] = []
+    for i in range(len(pts) - 1):
+        a, b = pts[i], pts[i + 1]
+        out.append(a)
+        seg_hops = sorted(by_seg.get(i, []), key=lambda h: h[1])
+        ux, uy = b.x - a.x, b.y - a.y
+        length = math.hypot(ux, uy)
+        if length >= 2 * HOP_R + 2:
+            ux, uy = ux / length, uy / length
+            nx, ny = -uy, ux  # consistent side (left of travel)
+            for _, t, c in seg_hops:
+                out.append(Point(c.x - ux * HOP_R, c.y - uy * HOP_R))
+                for k in range(1, 10):
+                    th = math.pi * k / 10
+                    out.append(Point(
+                        c.x - HOP_R * math.cos(th) * ux + HOP_R * math.sin(th) * nx,
+                        c.y - HOP_R * math.cos(th) * uy + HOP_R * math.sin(th) * ny))
+                out.append(Point(c.x + ux * HOP_R, c.y + uy * HOP_R))
+    out.append(pts[-1])
+    return out
 
 
 def _polyline_midpoint(pts: list[Point]) -> Point:

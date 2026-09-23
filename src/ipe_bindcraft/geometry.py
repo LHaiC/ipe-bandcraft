@@ -449,6 +449,30 @@ def seg_intersects_box(a, b, bbox, tol: float = TOL_BP) -> bool:
     return False
 
 
+def seg_seg_intersection(a, b, c, d):
+    """Proper interior crossing of segments ab and cd.
+
+    Returns (t, u, sin_theta) where the crossing is a + t*(b-a) = c + u*(d-c),
+    both t,u strictly interior, or None. sin_theta = |cross|/(|u||v|) is the
+    sine of the crossing angle (1.0 for perpendicular).
+    """
+    ux, uy = b[0] - a[0], b[1] - a[1]
+    vx, vy = d[0] - c[0], d[1] - c[1]
+    den = ux * vy - uy * vx
+    if abs(den) < 1e-12:
+        return None
+    wx, wy = c[0] - a[0], c[1] - a[1]
+    t = (wx * vy - wy * vx) / den
+    u = (wx * uy - wy * ux) / den
+    if not (1e-6 <= t <= 1 - 1e-6 and 1e-6 <= u <= 1 - 1e-6):
+        return None
+    la = math.hypot(ux, uy)
+    lb = math.hypot(vx, vy)
+    if la < 1e-12 or lb < 1e-12:
+        return None
+    return t, u, abs(den) / (la * lb)
+
+
 def _segs_cross(p1, p2, p3, p4) -> bool:
     def ccw(a, b, c):
         return (c[1] - a[1]) * (b[0] - a[0]) > (b[1] - a[1]) * (c[0] - a[0])

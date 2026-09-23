@@ -183,6 +183,41 @@ def test_template_palette_icon_auto(tmp_path):
 
 @requires_ipe
 @requires_tex
+def test_hop_over_arcs(tmp_path):
+    """Crossing edges get a hop arc baked into the top edge's path;
+    removing the crossing removes the hop."""
+    svc = Service(TOOLS)
+    doc = svc.create_document(str(tmp_path / "h.ipe"), 400, 300, "paper-default")
+    did = doc["document_id"]
+    # two nodes left/right + one node top/bottom -> edges cross in the middle
+    apply(svc, did, doc["revision"], "h1", [
+        NODE("w", 30, 120), NODE("e", 300, 120),
+        NODE("nt", 190, 30), NODE("sb", 190, 210),
+        {"op": "edge.create", "id": "horiz", "source": {"node": "w"},
+         "target": {"node": "e"}, "routing": {"mode": "straight"}},
+        {"op": "edge.create", "id": "vert", "source": {"node": "nt"},
+         "target": {"node": "sb"}, "routing": {"mode": "straight"}},
+    ])
+    insp = svc.inspect_document(did, include_geometry=True)
+    # top edge (vert, created later) should have a hop -> polyline has >2 pts
+    from ipe_bindcraft.snapshot import build_snapshot
+    snap = build_snapshot(svc._session(did).doc)
+    hops = {eid: e.meta.get("hops", 0) for eid, e in snap.edges.items()}
+    assert max(hops.values()) == 1
+    hop_edge = max(hops, key=hops.get)
+    # hop edge path has many vertices (2 endpoints + ~11 hop pts)
+    assert len(snap.edges[hop_edge].path_el.text.split(" l")) >= 10
+
+    # move 'nt' below the horizontal line so the edges no longer cross
+    r = apply(svc, did, insp["revision"], "h2", [
+        {"op": "objects.translate", "ids": ["nt"], "dx": 0, "dy": 140}])
+    snap2 = build_snapshot(svc._session(did).doc)
+    hops2 = {eid: e.meta.get("hops", 0) for eid, e in snap2.edges.items()}
+    assert max(hops2.values()) == 0
+
+
+@requires_ipe
+@requires_tex
 def test_tex_failure_fails_fast(tmp_path):
     svc = Service(TOOLS)
     doc = svc.create_document(str(tmp_path / "f.ipe"), 400, 300, "paper-default")
