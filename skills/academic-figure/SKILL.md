@@ -33,6 +33,8 @@ around it.
    `source`/`target` node ids and port sides — never floating arrow
    endpoints. `routing.mode="auto"` picks straight for row/column-aligned
    nodes and orthogonal otherwise; use explicit modes when you need control.
+   Where two managed edges cross, the later (higher z-order) edge gets a
+   hop-over arc automatically; hops are recomputed on every reroute.
    `icon.create` places curated native-path glyphs (`list_presets "icon"`;
    database, cloud, gear, server, user, lock, …) inside a bounding box —
    group it with a node via `objects.group` when it should move together.

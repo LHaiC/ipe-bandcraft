@@ -24,7 +24,7 @@ Ipe automation skill + MCP server for AI coding agents. Create and iteratively e
 - **15 MCP tools** for document lifecycle, semantic editing, routing, layout, lint, preview, export
 - **Two authoritative backends** — the `.ipe` file on disk, or a bound live Ipe window's in-memory document; never a second scene.json
 - **Transactional batches** — typed operations with stable IDs, optimistic revision checks, request deduplication, atomic commits, and per-operation failure details
-- **Semantic connections** — edges bind to real node outlines (rect / rounded / ellipse / diamond ports), auto re-route when endpoints move; `straight` / `orthogonal` / `auto` / `manual` routing
+- **Semantic connections** — edges bind to real node outlines (rect / rounded / ellipse / diamond ports), auto re-route when endpoints move; `straight` / `orthogonal` / `auto` / `manual` routing, with **hop-over arcs** baked at edge crossings (the higher z-order edge jumps)
 - **Academic presets** — semantic palettes (`paper-muted`, `paper-vivid`, `paper-ocean`, `paper-monochrome`), 3 starter templates (`system_overview`, `algorithm_pipeline`, `parallel_workers`), and 15 curated native-path icons (`database`, `cloud`, `gear`, …)
 - **LaTeX-aware text** — labels are measured through real `ipescript` + `doc:runLatex()`; node resize never shrinks fonts
 - **Native undo in Live mode** — every batch is a single `model:register` transaction (one Ctrl-Z), verified end-to-end
@@ -151,8 +151,9 @@ pytest tests/windows_live    # real ipe.exe windows (Windows only)
   ASCII-safe).
 - Single page / single view documents only.
 - Icons are a curated set of 15 native-path glyphs — arbitrary SVG icon
-  import is intentionally out of scope. No hop-over arc routing, no
-  arbitrary code execution — by design.
+  import is intentionally out of scope. Hop-over arcs are generated for
+  managed semantic edges only (manual edits to an edge's path are kept
+  until its hop set changes). No arbitrary code execution — by design.
 
 ## Development
 

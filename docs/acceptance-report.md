@@ -58,10 +58,11 @@ transaction. Python: `backends/live_backend.py`.
 
 - No-test areas: multi-page documents (rejected `UNSUPPORTED_DOCUMENT_FEATURE`),
   non-ASCII document paths for Ipe CLI operations, `GUI_BUSY` long-timeout path
-  (code present; not exercised in the suite), hop-over/arc routing
-  (straight/orthogonal/manual only).
+  (code present; not exercised in the suite).
 - Performance targets (SPEC §14.5) not yet measured — no claim made.
-- Icon library and advanced routing are explicitly out of scope.
+- Hop-over arcs are generated at managed-edge crossings (later edge in z-order
+  jumps; canonical hop-free polyline kept in edge metadata so reroutes
+  recompute deterministically). Arbitrary SVG icon import is out of scope.
 
 ## Reproduce
 
