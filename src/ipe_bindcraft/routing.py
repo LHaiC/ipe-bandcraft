@@ -5,6 +5,9 @@ Supported modes (spec-limited, honest scope):
 - orthogonal: axis-aligned via a single bend channel, avoids crossing endpoint
   node boxes when a simple channel exists; falls back to straight with a
   warning when no clean channel exists.
+- auto: heuristic choice — straight when endpoints are roughly row- or
+  column-aligned, otherwise orthogonal. Stored as "auto" in edge metadata so
+  later reroutes re-evaluate.
 - manual: waypoints verbatim between resolved ports.
 
 Ports are real outline intersection points (geometry.port_point), not bbox
@@ -73,6 +76,10 @@ def route_edge(edge: EdgeObj, snap: SceneSnapshot) -> RouteResult:
     db0 = dst.bbox(snap.doc)
     src_c = Point(sb0.cx, sb0.cy)
     dst_c = Point(db0.cx, db0.cy)
+    if mode == "auto":
+        # same row or column -> straight; diagonal/backward -> orthogonal
+        aligned = abs(src_c.y - dst_c.y) < 15 or abs(src_c.x - dst_c.x) < 15
+        mode = "straight" if aligned else "orthogonal"
     sp = resolve_port(src, edge.source.get("side", "auto"),
                       edge.source.get("offset"), snap, toward=dst_c)
     tp = resolve_port(dst, edge.target.get("side", "auto"),

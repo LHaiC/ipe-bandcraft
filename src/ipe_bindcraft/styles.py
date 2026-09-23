@@ -43,6 +43,30 @@ PALETTES = {
         "accent": "0.55 0.22 0.22",
         "warn": "0.75 0.45 0.15",
     },
+    "paper-vivid": {
+        # more saturated role fills, still distinguishable in grayscale
+        "stroke": "0.12 0.12 0.16",
+        "edge": "0.25 0.25 0.30",
+        "fill_compute": "0.62 0.78 0.90",
+        "fill_memory": "0.96 0.76 0.45",
+        "fill_data": "0.62 0.83 0.62",
+        "fill_control": "0.82 0.66 0.86",
+        "fill_io": "0.90 0.85 0.55",
+        "accent": "0.60 0.15 0.15",
+        "warn": "0.85 0.40 0.10",
+    },
+    "paper-ocean": {
+        # cool blue/teal family
+        "stroke": "0.10 0.14 0.20",
+        "edge": "0.22 0.30 0.38",
+        "fill_compute": "0.72 0.85 0.93",
+        "fill_memory": "0.80 0.90 0.85",
+        "fill_data": "0.86 0.93 0.93",
+        "fill_control": "0.65 0.78 0.88",
+        "fill_io": "0.88 0.92 0.80",
+        "accent": "0.20 0.45 0.55",
+        "warn": "0.80 0.50 0.20",
+    },
     "paper-monochrome": {
         "stroke": "0 0 0",
         "edge": "0.25 0.25 0.25",
@@ -76,9 +100,6 @@ TEX_PROFILES = {
     },
 }
 
-TEMPLATES = {"system_overview", "algorithm_pipeline", "parallel_workers"}
-
-
 def list_presets(kind: str) -> list[dict]:
     out = []
     if kind == "style":
@@ -88,14 +109,19 @@ def list_presets(kind: str) -> list[dict]:
                 "description": "built-in academic style defaults (project defaults, not a journal standard)",
                 "params": p,
             })
+    elif kind == "palette":
         for pid, pal in PALETTES.items():
             out.append({"id": pid, "description": "semantic color palette", "params": pal})
     elif kind == "tex":
         for tid, t in TEX_PROFILES.items():
             out.append({"id": tid, "description": t["description"], "params": t})
     elif kind == "template":
+        from .templates import TEMPLATES
         for tid in sorted(TEMPLATES):
             out.append({"id": tid, "description": "starter template (example layout, not an official standard)"})
+    elif kind == "icon":
+        from .icons import list_icons
+        out.extend(list_icons())
     return out
 
 
