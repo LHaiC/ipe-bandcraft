@@ -111,6 +111,10 @@ class Journal:
     def get(self, request_id: str) -> dict | None:
         return self._load().get(request_id)
 
+    def records(self) -> list[dict]:
+        """All journaled records (one per unique request_id, file order)."""
+        return list(self._load().values())
+
     def append(self, rec: dict):
         rec = {"ts": time.time(), **rec}
         line = json.dumps(rec, ensure_ascii=False, separators=(",", ":"))

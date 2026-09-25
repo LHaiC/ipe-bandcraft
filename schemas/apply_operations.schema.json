@@ -4,10 +4,12 @@
       "additionalProperties": false,
       "properties": {
         "x": {
+          "description": "left edge, API coordinates: top-left origin, +x right, +y down, units bp (1/72 in). Ipe-native bottom-left y-up conversion is internal.",
           "title": "X",
           "type": "number"
         },
         "y": {
+          "description": "top edge (down-positive), API coordinates: top-left origin, +x right, +y down, units bp (1/72 in). Ipe-native bottom-left y-up conversion is internal.",
           "title": "Y",
           "type": "number"
         },
@@ -112,6 +114,7 @@
         "routing": {
           "discriminator": {
             "mapping": {
+              "auto": "#/$defs/RoutingAuto",
               "manual": "#/$defs/RoutingManual",
               "orthogonal": "#/$defs/RoutingAuto",
               "straight": "#/$defs/RoutingAuto"
@@ -221,6 +224,7 @@
             {
               "discriminator": {
                 "mapping": {
+                  "auto": "#/$defs/RoutingAuto",
                   "manual": "#/$defs/RoutingManual",
                   "orthogonal": "#/$defs/RoutingAuto",
                   "straight": "#/$defs/RoutingAuto"
@@ -300,6 +304,55 @@
       "title": "Endpoint",
       "type": "object"
     },
+    "IconCreate": {
+      "additionalProperties": false,
+      "description": "Curated native-path icon (see list_presets(kind='icon')).",
+      "properties": {
+        "op": {
+          "const": "icon.create",
+          "title": "Op",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9_.\\-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "box": {
+          "$ref": "#/$defs/Box"
+        },
+        "role": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role"
+        }
+      },
+      "required": [
+        "op",
+        "id",
+        "name",
+        "box"
+      ],
+      "title": "IconCreate",
+      "type": "object"
+    },
     "LayerCreate": {
       "additionalProperties": false,
       "properties": {
@@ -359,7 +412,8 @@
           "type": "string"
         },
         "box": {
-          "$ref": "#/$defs/Box"
+          "$ref": "#/$defs/Box",
+          "description": "absolute placement, API coordinates: top-left origin, +x right, +y down, units bp (1/72 in). Ipe-native bottom-left y-up conversion is internal."
         },
         "label": {
           "$ref": "#/$defs/Text"
@@ -455,7 +509,8 @@
               "type": "null"
             }
           ],
-          "default": null
+          "default": null,
+          "description": "absolute box (move/resize), API coordinates: top-left origin, +x right, +y down, units bp (1/72 in). Ipe-native bottom-left y-up conversion is internal. Prefer over objects.translate when targeting a position."
         },
         "label": {
           "anyOf": [
@@ -569,6 +624,57 @@
       "title": "ObjectsGroup",
       "type": "object"
     },
+    "ObjectsMoveTo": {
+      "additionalProperties": false,
+      "description": "Absolute-position move: places each object's bbox anchor at (x, y).",
+      "properties": {
+        "op": {
+          "const": "objects.move_to",
+          "title": "Op",
+          "type": "string"
+        },
+        "ids": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z][A-Za-z0-9_.\\-]{0,63}$",
+            "type": "string"
+          },
+          "maxItems": 500,
+          "minItems": 1,
+          "title": "Ids",
+          "type": "array"
+        },
+        "x": {
+          "description": "target x, API coordinates: top-left origin, +x right, +y down, units bp (1/72 in). Ipe-native bottom-left y-up conversion is internal.",
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "description": "target y, API coordinates: top-left origin, +x right, +y down, units bp (1/72 in). Ipe-native bottom-left y-up conversion is internal.",
+          "title": "Y",
+          "type": "number"
+        },
+        "anchor": {
+          "default": "top_left",
+          "description": "which point of each object's bbox lands on (x, y)",
+          "enum": [
+            "top_left",
+            "center"
+          ],
+          "title": "Anchor",
+          "type": "string"
+        }
+      },
+      "required": [
+        "op",
+        "ids",
+        "x",
+        "y"
+      ],
+      "title": "ObjectsMoveTo",
+      "type": "object"
+    },
     "ObjectsTranslate": {
       "additionalProperties": false,
       "properties": {
@@ -590,10 +696,12 @@
           "type": "array"
         },
         "dx": {
+          "description": "relative horizontal move (+x right, bp)",
           "title": "Dx",
           "type": "number"
         },
         "dy": {
+          "description": "relative vertical move, +y DOWN in API coords (positive dy moves objects visually downward). For absolute placement use objects.move_to or node.update.box.",
           "title": "Dy",
           "type": "number"
         }
@@ -833,10 +941,12 @@
       "additionalProperties": false,
       "properties": {
         "x": {
+          "description": "horizontal position, API coordinates: top-left origin, +x right, +y down, units bp (1/72 in). Ipe-native bottom-left y-up conversion is internal.",
           "title": "X",
           "type": "number"
         },
         "y": {
+          "description": "vertical position (down-positive), API coordinates: top-left origin, +x right, +y down, units bp (1/72 in). Ipe-native bottom-left y-up conversion is internal.",
           "title": "Y",
           "type": "number"
         }
@@ -889,7 +999,8 @@
         "mode": {
           "enum": [
             "straight",
-            "orthogonal"
+            "orthogonal",
+            "auto"
           ],
           "title": "Mode",
           "type": "string"
@@ -1090,10 +1201,12 @@
           "type": "string"
         },
         "x": {
+          "description": "API coordinates: top-left origin, +x right, +y down, units bp (1/72 in). Ipe-native bottom-left y-up conversion is internal.",
           "title": "X",
           "type": "number"
         },
         "y": {
+          "description": "API coordinates: top-left origin, +x right, +y down, units bp (1/72 in). Ipe-native bottom-left y-up conversion is internal.",
           "title": "Y",
           "type": "number"
         },
@@ -1286,11 +1399,13 @@
           "mapping": {
             "edge.create": "#/$defs/EdgeCreate",
             "edge.update": "#/$defs/EdgeUpdate",
+            "icon.create": "#/$defs/IconCreate",
             "layer.create": "#/$defs/LayerCreate",
             "node.create": "#/$defs/NodeCreate",
             "node.update": "#/$defs/NodeUpdate",
             "objects.delete": "#/$defs/ObjectsDelete",
             "objects.group": "#/$defs/ObjectsGroup",
+            "objects.move_to": "#/$defs/ObjectsMoveTo",
             "objects.translate": "#/$defs/ObjectsTranslate",
             "objects.ungroup": "#/$defs/ObjectsUngroup",
             "path.create": "#/$defs/PathCreate",
@@ -1314,6 +1429,9 @@
             "$ref": "#/$defs/EdgeCreate"
           },
           {
+            "$ref": "#/$defs/IconCreate"
+          },
+          {
             "$ref": "#/$defs/NodeUpdate"
           },
           {
@@ -1327,6 +1445,9 @@
           },
           {
             "$ref": "#/$defs/ObjectsTranslate"
+          },
+          {
+            "$ref": "#/$defs/ObjectsMoveTo"
           },
           {
             "$ref": "#/$defs/ObjectsDelete"

@@ -24,6 +24,7 @@ from pathlib import Path
 
 from . import discovery
 from .errors import IbcError
+from lxml import etree
 
 SUBPROC_KW: dict = dict(encoding="utf-8", errors="replace")
 if sys.platform == "win32":
@@ -183,11 +184,77 @@ def png_dimensions(png_path: Path) -> tuple[int, int]:
     return w, h
 
 
+def annotate_xml(ipe_xml: bytes, grid_bp: float = 50.0) -> bytes:
+    """Overlay an API-space coordinate grid + object-id labels on a clone.
+
+    The result is a throwaway render aid — annotation elements carry no
+    ``custom`` metadata so they would be unmanaged if ever committed, but
+    callers must treat the output as render-only.
+
+    Grid lines are dashed light gray; ``x=<n>``/``y=<n>`` tick labels sit on
+    the top/left margins; each managed object gets its id in small red text
+    just above its bbox top-left corner.
+    """
+    from .compiler import text_to_latex
+    from .coordinates import fmt
+    from .document import IpeDoc
+    from .snapshot import build_snapshot
+
+    doc = IpeDoc.parse(ipe_xml)
+    snap = build_snapshot(doc)
+    W, H = doc.page_size
+    page = doc.page
+
+    def grid_path(body: str, stroke: str = "0.82 0.82 0.88"):
+        e = etree.SubElement(page, "path")
+        e.set("stroke", stroke)
+        e.set("pen", "0.3")
+        e.set("dash", "[3 3] 0")
+        e.text = body
+
+    def tick(x: float, y_ipe: float, text: str, color: str = "0.45 0.45 0.5",
+             size: str = "5", halign: str = "left", valign: str = "bottom"):
+        e = etree.SubElement(page, "text")
+        e.set("pos", f"{fmt(x)} {fmt(y_ipe)}")
+        e.set("stroke", color)
+        e.set("type", "label")
+        e.set("size", size)
+        e.set("halign", halign)
+        e.set("valign", valign)
+        e.set("layer", "alpha")
+        e.text = text_to_latex("plain", text)  # ids may contain _ etc.
+
+    step = max(1.0, grid_bp)
+    # verticals at API x=k (ipe x=k), horizontals at API y=k (ipe y=H-k)
+    k = step
+    while k < W - 0.01:
+        grid_path(f"{fmt(k)} 0 m\n{fmt(k)} {fmt(H)} l")
+        tick(k, H - 1, f"x={fmt(k)}")
+        k += step
+    k = step
+    while k < H - 0.01:
+        grid_path(f"0 {fmt(H - k)} m\n{fmt(W)} {fmt(H - k)} l")
+        tick(1, H - k - 1, f"y={fmt(k)}")
+        k += step
+
+    # object ids above each bbox top-left (API) -> just above in ipe coords
+    for oid, obj in snap.objects.items():
+        bb = obj.bbox(doc)
+        if bb is None:
+            continue
+        tick(bb.x + 1, H - bb.y + 1, oid,
+             color="0.7 0.15 0.15", size="6")
+    return doc.serialize()
+
+
 def render_preview_png(tools: discovery.Discovery, ipe_xml: bytes,
-                       dpi: int = 150) -> bytes:
-    """Render the doc to PNG bytes for MCP image content."""
+                       dpi: int = 150, annotate: bool = False,
+                       grid_bp: float = 50.0) -> bytes:
+    """Render the doc to PNG bytes for MCP image content / --preview files."""
     if not tools.iperender:
         raise IbcError("BACKEND_CAPABILITY_UNAVAILABLE", "iperender not found")
+    if annotate:
+        ipe_xml = annotate_xml(ipe_xml, grid_bp)
     with tempfile.TemporaryDirectory(prefix="ibc-preview-") as tmp:
         stage = Path(tmp)
         src = stage / "src.ipe"

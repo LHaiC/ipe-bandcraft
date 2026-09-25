@@ -110,9 +110,9 @@ def close_document(document_id: str) -> dict:
 
 
 @server.tool(name="inspect_document",
-             description="List managed objects, optionally with geometry")
+             description="List managed objects with API-space bounding boxes")
 def inspect_document(document_id: str, ids: list[str] | None = None,
-                     include_geometry: bool = False) -> dict:
+                     include_geometry: bool = True) -> dict:
     return _call(svc().inspect_document, document_id, ids, include_geometry)
 
 
@@ -165,7 +165,8 @@ def polish_figure(document_id: str, expected_revision: str, request_id: str,
 
 @server.tool(name="render_preview",
              description="Render current revision to PNG (image content). "
-                         "Fails with PREVIEW_STALE if revision mismatch.")
+                         "Fails with PREVIEW_STALE if revision mismatch. "
+                         "overlay=True draws the API-coord grid + object ids.")
 def render_preview(document_id: str, revision: str, dpi: int = 150,
                    overlay: bool = False) -> list:
     from .export import render_preview_png
@@ -178,7 +179,8 @@ def render_preview(document_id: str, revision: str, dpi: int = 150,
             "code": "PREVIEW_STALE",
             "message": f"preview requested at {revision}, current {sess.revision}",
             "details": {"current": sess.revision}}))
-    png = render_preview_png(svc().tools(), sess.doc.serialize(), dpi=dpi)
+    png = render_preview_png(svc().tools(), sess.doc.serialize(), dpi=dpi,
+                             annotate=overlay)
     return [
         TextContent(type="text", text=f"preview rev {sess.revision} @ {dpi}dpi"),
         ImageContent(type="image", data=base64.b64encode(png).decode(),

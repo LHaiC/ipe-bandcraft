@@ -41,14 +41,18 @@ class Strict(BaseModel):
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False, strict=False)
 
 
+_API_SPACE = ("API coordinates: top-left origin, +x right, +y down, units bp "
+              "(1/72 in). Ipe-native bottom-left y-up conversion is internal.")
+
+
 class Point(Strict):
-    x: Bp
-    y: Bp
+    x: Bp = Field(description="horizontal position, " + _API_SPACE)
+    y: Bp = Field(description="vertical position (down-positive), " + _API_SPACE)
 
 
 class Box(Strict):
-    x: Bp
-    y: Bp
+    x: Bp = Field(description="left edge, " + _API_SPACE)
+    y: Bp = Field(description="top edge (down-positive), " + _API_SPACE)
     width: PositiveBp
     height: PositiveBp
 
@@ -156,7 +160,7 @@ class NodeCreate(Strict):
     op: Literal["node.create"]
     id: ObjectId
     shape: Literal["rect", "rounded_rect", "ellipse", "diamond"]
-    box: Box
+    box: Box = Field(description="absolute placement, " + _API_SPACE)
     label: Text
     role: Role | None = None
     style_id: StyleId | None = None
@@ -172,8 +176,8 @@ class NodeCreate(Strict):
 class TextCreate(Strict):
     op: Literal["text.create"]
     id: ObjectId
-    x: Bp
-    y: Bp
+    x: Bp = Field(description=_API_SPACE)
+    y: Bp = Field(description=_API_SPACE)
     text: Text
     role: Role | None = None
 
@@ -213,7 +217,10 @@ class IconCreate(Strict):
 
 
 class NodeUpdateChanges(Strict):
-    box: BoxPatch | None = None
+    box: BoxPatch | None = Field(
+        default=None,
+        description="absolute box (move/resize), " + _API_SPACE +
+                    " Prefer over objects.translate when targeting a position.")
     label: TextPatch | None = None
     role: Role | None = None
     style_id: StyleId | None = None
@@ -301,8 +308,30 @@ class EdgeUpdate(Strict):
 class ObjectsTranslate(Strict):
     op: Literal["objects.translate"]
     ids: Annotated[list[ObjectId], Field(min_length=1, max_length=500)]
-    dx: Bp
-    dy: Bp
+    dx: Bp = Field(description="relative horizontal move (+x right, bp)")
+    dy: Bp = Field(
+        description="relative vertical move, +y DOWN in API coords "
+                    "(positive dy moves objects visually downward). For "
+                    "absolute placement use objects.move_to or node.update.box.")
+
+    @field_validator("ids")
+    @classmethod
+    def _unique(cls, v):
+        if len(set(v)) != len(v):
+            raise ValueError("duplicate ids in selection")
+        return v
+
+
+class ObjectsMoveTo(Strict):
+    """Absolute-position move: places each object's bbox anchor at (x, y)."""
+
+    op: Literal["objects.move_to"]
+    ids: Annotated[list[ObjectId], Field(min_length=1, max_length=500)]
+    x: Bp = Field(description="target x, " + _API_SPACE)
+    y: Bp = Field(description="target y, " + _API_SPACE)
+    anchor: Literal["top_left", "center"] = Field(
+        default="top_left",
+        description="which point of each object's bbox lands on (x, y)")
 
     @field_validator("ids")
     @classmethod
@@ -361,6 +390,7 @@ Operation = Annotated[
     | PathUpdate
     | EdgeUpdate
     | ObjectsTranslate
+    | ObjectsMoveTo
     | ObjectsDelete
     | ObjectsGroup
     | ObjectsUngroup
@@ -408,7 +438,7 @@ class CloseDocumentInput(Strict):
 class InspectDocumentInput(Strict):
     document_id: DocumentId
     ids: list[ObjectId] | None = None
-    include_geometry: bool = False
+    include_geometry: bool = True  # API-space boxes are cheap and essential
 
 
 class LayoutObjectsInput(Strict):

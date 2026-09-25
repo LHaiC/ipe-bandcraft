@@ -183,6 +183,10 @@ def reroute_stale_edges(doc, snap: SceneSnapshot,
 
     hop_map = _detect_hops(snap, canonical)
 
+    # obstacle boxes for label placement: node bodies, standalone texts, and
+    # labels of edges that stay clean this pass (they are never repositioned).
+    obstacles = _label_obstacles(snap)
+
     n_routed = 0
     for eid, edge in snap.edges.items():
         if edge.path_el is None or eid not in canonical:
@@ -200,9 +204,10 @@ def reroute_stale_edges(doc, snap: SceneSnapshot,
             _set_hop_meta(meta, hop_pts)
             meta.pop("needs_route", None)
             if edge.label_el is not None and len(canonical[eid]) >= 2:
-                mid = _polyline_midpoint(canonical[eid])
-                ip = to_ipe(mid, snap.page_h)
+                pos, fp_box = _best_label_pos(canonical[eid], edge, obstacles)
+                ip = to_ipe(pos, snap.page_h)
                 edge.label_el.set("pos", f"{fmt(ip.x)} {fmt(ip.y)}")
+                obstacles.append(fp_box)
             edge.el.set("custom", encode_meta(meta))
             n_routed += 1
         else:
@@ -331,14 +336,79 @@ def _insert_hops(pts: list[Point], hops: list[tuple]) -> list[Point]:
 
 
 def _polyline_midpoint(pts: list[Point]) -> Point:
+    return _polyline_point_at(pts, 0.5)
+
+
+def _polyline_point_at(pts: list[Point], frac: float) -> Point:
+    """Point at arc-length fraction ``frac`` (0..1) along the polyline."""
     segs = [(pts[i], pts[i + 1]) for i in range(len(pts) - 1)]
     total = sum(_dist(a, b) for a, b in segs)
-    half = total / 2
+    if total <= 0:
+        return pts[0]
+    want = total * frac
     acc = 0.0
     for a, b in segs:
         d = _dist(a, b)
-        if acc + d >= half and d > 0:
-            t = (half - acc) / d
+        if acc + d >= want and d > 0:
+            t = (want - acc) / d
             return Point(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t)
         acc += d
-    return pts[len(pts) // 2]
+    return pts[-1]
+
+
+# arc-length fractions probed for edge-label placement, best-first
+LABEL_POS_CANDIDATES = (0.5, 0.38, 0.62, 0.26, 0.74)
+
+
+def _label_dims(el) -> tuple[float, float, float]:
+    """(width, height, depth) of an edge label element, estimated if the
+    LaTeX pass has not measured it yet."""
+    w = float(el.get("width") or 36.0)
+    h = float(el.get("height") or 6.0)
+    d = float(el.get("depth") or 1.0)
+    return w, h, d
+
+
+def _label_footprint(p: Point, w: float, h: float, d: float):
+    """AABB (x1,y1,x2,y2) of a label anchored at p with halign=center,
+    valign=bottom (API coords)."""
+    return (p.x - w / 2, p.y - h - d, p.x + w / 2, p.y)
+
+
+def _aabb_hit(a, b) -> bool:
+    return not (a[2] <= b[0] or b[2] <= a[0] or a[3] <= b[1] or b[3] <= a[1])
+
+
+def _label_obstacles(snap: SceneSnapshot) -> list[tuple]:
+    """Boxes edge labels should not overlap: node bodies, standalone texts,
+    and current label boxes of clean (non-rerouted) edges."""
+    boxes: list[tuple] = []
+    for obj in snap.objects.values():
+        if isinstance(obj, EdgeObj):
+            continue
+        bb = obj.bbox(snap.doc)
+        if bb is not None:
+            boxes.append((bb.x, bb.y, bb.x2, bb.y2))
+    for e in snap.edges.values():
+        if not e.needs_route and e.label_el is not None:
+            lb = e.label_box(snap.doc)
+            if lb is not None:
+                boxes.append((lb.x, lb.y, lb.x2, lb.y2))
+    return boxes
+
+
+def _best_label_pos(pts: list[Point], edge: EdgeObj,
+                    obstacles: list[tuple]) -> tuple[Point, tuple]:
+    """Pick the candidate point along the polyline whose label footprint
+    overlaps the fewest obstacle boxes (midpoint preferred on ties)."""
+    w, h, d = _label_dims(edge.label_el)
+    best_pos, best_fp, best_hits = None, None, None
+    for frac in LABEL_POS_CANDIDATES:
+        p = _polyline_point_at(pts, frac)
+        fp = _label_footprint(p, w, h, d)
+        hits = sum(1 for ob in obstacles if _aabb_hit(fp, ob))
+        if best_hits is None or hits < best_hits:
+            best_pos, best_fp, best_hits = p, fp, hits
+            if hits == 0:
+                break
+    return best_pos, best_fp
