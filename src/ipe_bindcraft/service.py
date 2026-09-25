@@ -57,6 +57,7 @@ class Session:
     journal: Journal | None = None
     opened_at: float = field(default_factory=time.time)
     live: LiveBridge | None = None
+    last_candidate_xml: bytes | None = None  # set by _commit_candidate
 
 
 class Service:
@@ -347,12 +348,32 @@ class Service:
             extra={"effects": res.effects, "changed_ids": res.changed_ids,
                    "warnings": res.warnings},
             op_count=len(ops),
+            lint_ids=set(res.changed_ids),
         )
+
+    def _quality_warnings(self, doc: IpeDoc, ids: set[str]) -> list[dict]:
+        """Lint findings (warn/fail) touching the changed objects or their
+        bound edges — surfaced inline so callers don't need a second lint pass
+        to notice a collision or overflow they just introduced."""
+        from .quality import lint as _lint
+
+        snap = build_snapshot(doc)
+        relevant = set(ids)
+        for oid in list(ids):
+            relevant |= {e.id for e in snap.edges_touching(oid)}
+        out = _lint(snap)
+        warnfail = [f for f in out["findings"]
+                    if f["status"] in ("warn", "fail")]
+        return [f for f in warnfail
+                if f.get("object_id") is None
+                or f.get("object_id") in relevant
+                or (f.get("details") or {}).get("with") in relevant]
 
     def _commit_candidate(self, sess: Session, candidate: IpeDoc,
                           text_dirty: bool, fp: str, request_id: str,
                           dry_run: bool, extra: dict,
-                          op_count: int = 0) -> dict:
+                          op_count: int = 0,
+                          lint_ids: set[str] | None = None) -> dict:
         """Shared tail: measure -> revision check -> atomic write -> journal."""
         body = candidate.serialize()
         changed = candidate.content_hash() != sess.doc.content_hash()
@@ -363,6 +384,10 @@ class Service:
             body = measurer.measure_doc(body)
             candidate = IpeDoc.parse(body)
 
+        # keep the measured candidate around so a same-invocation
+        # `apply --preview` can render the post-apply state (even on dry-run).
+        sess.last_candidate_xml = body
+
         result = {
             "document_id": sess.document_id,
             "request_id": request_id,
@@ -371,6 +396,8 @@ class Service:
             **extra,
         }
         if dry_run:
+            if lint_ids:
+                result["warnings"].extend(self._quality_warnings(candidate, lint_ids))
             result["revision"] = sess.revision
             return result
         if not changed and not text_dirty:
@@ -386,7 +413,7 @@ class Service:
 
         if sess.live is not None:
             return self._commit_live(sess, candidate, fp, request_id, result,
-                                     op_count)
+                                     op_count, lint_ids)
 
         lock = WriterLock(sess.path)
         lock.acquire()
@@ -410,6 +437,8 @@ class Service:
         sess.doc = IpeDoc.parse(body)
         sess.revision = file_revision(sess.path)
         result["revision"] = sess.revision
+        if lint_ids:
+            result["warnings"].extend(self._quality_warnings(sess.doc, lint_ids))
         if sess.journal:
             sess.journal.append({"request_id": request_id, "fingerprint": fp,
                                  "status": "committed", "revision": sess.revision,
@@ -418,7 +447,8 @@ class Service:
         return result
 
     def _commit_live(self, sess: Session, candidate: IpeDoc, fp: str,
-                     request_id: str, result: dict, op_count: int) -> dict:
+                     request_id: str, result: dict, op_count: int,
+                     lint_ids: set[str] | None = None) -> dict:
         """Push a candidate page through the bridge as one undoable action."""
         assert sess.live is not None
         status = sess.live.apply_page(candidate.page_xml())
@@ -437,6 +467,8 @@ class Service:
         sess.doc.replace_page(page)
         sess.revision = "sha256:" + sess.doc.content_hash()[:32]
         result["revision"] = sess.revision
+        if lint_ids:
+            result["warnings"].extend(self._quality_warnings(sess.doc, lint_ids))
         if sess.journal:
             sess.journal.append({"request_id": request_id, "fingerprint": fp,
                                  "status": "committed", "revision": sess.revision,
@@ -495,7 +527,8 @@ class Service:
         if dry_run:
             return {"document_id": document_id, "revision": sess.revision,
                     "dry_run": True, "moved": deltas}
-        ops = [ObjectsTranslate(ids=[oid], dx=dx, dy=dy)
+        ops = [ObjectsTranslate(op="objects.translate", ids=[oid],
+                                dx=dx, dy=dy)
                for oid, (dx, dy) in deltas.items()]
         with sess.lock:
             res = self._apply_locked(sess, ops, expected_revision, request_id, False)
@@ -521,7 +554,6 @@ class Service:
                       expected_revision: str, request_id: str,
                       dry_run: bool = True) -> dict:
         from .quality import polish_plan
-        from .schemas import NodeUpdate
 
         sess = self._session(document_id)
         self._refresh_if_changed(sess)
@@ -531,14 +563,8 @@ class Service:
             return {"document_id": document_id, "revision": sess.revision,
                     "dry_run": True, "plan": plan}
         # apply only the fixes we can express as typed ops
-        ops: list[Operation] = []
-        for item in plan:
-            if item["fix"] == "grow_nodes_to_label":
-                x, y, w, h = item["box"]
-                ops.append(NodeUpdate(
-                    id=item["id"],
-                    changes={"box": {"x": x, "y": y, "width": w, "height": h}},
-                ))
+        op_dicts = [item["op"] for item in plan if item.get("op")]
+        ops: list[Operation] = _OPS.validate_python(op_dicts)
         if not ops:
             return {"document_id": document_id, "revision": sess.revision,
                     "noop": True, "plan": plan}
@@ -546,6 +572,24 @@ class Service:
             res = self._apply_locked(sess, ops, expected_revision, request_id, False)
         res["plan"] = plan
         return res
+
+    def preview_source_xml(self, document_id: str) -> bytes:
+        """XML to render for a preview: the last apply's measured candidate
+        when available in this process, else the committed document."""
+        sess = self._session(document_id)
+        return sess.last_candidate_xml or sess.doc.serialize()
+
+    def journal_summary(self, document_id: str) -> dict:
+        sess = self._session(document_id)
+        if sess.journal is None:
+            return {"journal": None}
+        recs = sess.journal.records()
+        return {
+            "journal": str(sess.journal.path),
+            "requests": len(recs),
+            "last_request_id": recs[-1].get("request_id") if recs else None,
+            "last_status": recs[-1].get("status") if recs else None,
+        }
 
     def get_request_status(self, document_id: str, request_id: str) -> dict:
         sess = self._session(document_id)

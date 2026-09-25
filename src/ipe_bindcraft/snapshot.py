@@ -173,6 +173,13 @@ class EdgeObj(SemObj):
         el = self.path_el if self.path_el is not None else self.el
         return _bbox_to_box(path_bbox_api(el, doc.page_size[1]))
 
+    def label_box(self, doc: IpeDoc) -> Box | None:
+        """Measured bbox of the edge's label text (API coords), or None if
+        unlabeled / not measured yet."""
+        if self.label_el is None:
+            return None
+        return text_box_api(self.label_el, doc.page_size[1])
+
 
 @dataclass
 class GroupObj(SemObj):

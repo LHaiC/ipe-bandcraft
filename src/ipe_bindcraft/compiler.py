@@ -28,6 +28,7 @@ from .schemas import (
     NodeUpdate,
     ObjectsDelete,
     ObjectsGroup,
+    ObjectsMoveTo,
     ObjectsTranslate,
     ObjectsUngroup,
     Operation,
@@ -277,6 +278,8 @@ class Compiler:
         # so later ops in the same batch can reference them.
         for i, op in enumerate(ops):
             self._apply_one(i, op)
+        self._backfill_names()
+        self.res.changed_ids = list(dict.fromkeys(self.res.changed_ids))
         return self.res
 
     # ---- per-op implementations ---------------------------------------------
@@ -293,6 +296,7 @@ class Compiler:
             PathUpdate: self._path_update,
             EdgeUpdate: self._edge_update,
             ObjectsTranslate: self._objects_translate,
+            ObjectsMoveTo: self._objects_move_to,
             ObjectsDelete: self._objects_delete,
             ObjectsGroup: self._objects_group,
             ObjectsUngroup: self._objects_ungroup,
@@ -650,15 +654,59 @@ class Compiler:
             return  # no-op: does not touch the document
         self._check_set(i, op.ids)
         for oid in op.ids:
+            self._translate_obj(self.snap.get(oid), op.dx, op.dy)
+
+    def _objects_move_to(self, i: int, op: ObjectsMoveTo):
+        """Absolute placement: put each object's bbox anchor at (x, y).
+
+        Same mechanism as objects.translate (group matrix composition) but
+        computes the delta from the object's current API-space bbox, so callers
+        never have to reason about Ipe coordinates or existing transforms.
+        """
+        self._check_set(i, op.ids)
+        for oid in op.ids:
             obj = self.snap.get(oid)
-            el = obj.el
-            m = geo.parse_matrix(el.get("matrix"))
-            t = geo.mat_mul(geo.mat_translate(op.dx, -op.dy), m)  # Ipe y flips sign
-            el.set("matrix", geo.format_matrix(t))
-            for edge in self.snap.edges_touching(oid):
-                self._mark_needs_route(edge)
-            self.res.changed_ids.append(oid)
-            self.res.effects["updated"] += 1
+            bb = obj.bbox(self.doc)
+            if bb is None:
+                self._fail(i, "CONSTRAINT_UNSATISFIABLE",
+                           f"{oid!r} has no measurable bounding box "
+                           f"(unmeasured text or empty path)", [oid])
+            ax, ay = (bb.cx, bb.cy) if op.anchor == "center" else (bb.x, bb.y)
+            dx, dy = op.x - ax, op.y - ay
+            if dx or dy:
+                self._translate_obj(obj, dx, dy)
+
+    def _translate_obj(self, obj, dx: float, dy: float):
+        el = obj.el
+        m = geo.parse_matrix(el.get("matrix"))
+        t = geo.mat_mul(geo.mat_translate(dx, -dy), m)  # Ipe y flips sign
+        el.set("matrix", geo.format_matrix(t))
+        for edge in self.snap.edges_touching(obj.id):
+            self._mark_needs_route(edge)
+        self.res.changed_ids.append(obj.id)
+        self.res.effects["updated"] += 1
+
+    def _backfill_names(self):
+        """Make managed ids greppable in the raw XML.
+
+        Stamps a plaintext ``name`` attr (nice-to-have; Ipe's save strips it
+        on measure passes) and re-encodes ``custom`` values that predate the
+        plaintext id tag (``ibc1:<b64>`` -> ``ibc1:<id>:<b64>`` — ``custom``
+        is a native Ipe attribute and survives). One-time migration per
+        element; re-encoding is content-identical.
+        """
+        for el in self.doc.page.iter():
+            if el.tag == "use":
+                continue  # <use name=> is a symbol reference; never stamp
+            meta = get_custom(el)
+            if not meta or not meta.get("id"):
+                continue
+            oid = str(meta["id"])
+            if el.get("name") is None:
+                el.set("name", oid)
+            cur = el.get("custom") or ""
+            if not cur.startswith(f"ibc1:{oid}:"):
+                el.set("custom", encode_meta(meta))
 
     def _objects_delete(self, i: int, op: ObjectsDelete):
         self._check_set(i, op.ids)

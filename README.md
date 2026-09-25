@@ -76,14 +76,25 @@ Any MCP-compatible agent can use the server over stdio:
 ipe-bindcraft doctor                  # probe Ipe/TeX/MCP + live bridge
 ipe-bindcraft create fig.ipe --width 504 --height 300
 ipe-bindcraft create fig.ipe --template algorithm_pipeline --palette paper-vivid
-ipe-bindcraft apply fig.ipe @ops.json --revision sha256:... --request-id r1
-ipe-bindcraft inspect fig.ipe --geometry
+ipe-bindcraft status fig.ipe          # revision, objects, journal state
+ipe-bindcraft apply fig.ipe ops.json --revision latest --request-id r1 \
+    --lint --preview fig.png --annotate   # apply + lint + annotated PNG in one step
+ipe-bindcraft inspect fig.ipe         # objects + API-space bboxes (default)
 ipe-bindcraft lint fig.ipe --target-width 252
-ipe-bindcraft preview fig.ipe -o fig.png
+ipe-bindcraft polish fig.ipe fit_on_page wrap_texts --revision latest --request-id p1 --apply
+ipe-bindcraft preview fig.ipe -o fig.png --annotate   # grid + object ids overlay
 ipe-bindcraft export fig.ipe --formats pdf svg png -o out/
 ipe-bindcraft open fig.ipe --backend live    # bound GUI session
+ipe-bindcraft install-skill /path/to/consumer-repo   # install agent skill
 ipe-bindcraft serve                          # stdio MCP server
 ```
+
+`ops` payload forms: `@ops.json`, a bare `ops.json` path, `-` for stdin,
+or an inline JSON array (a `{"ops": [...]}` wrapper also works). All
+coordinates are API space: origin top-left, +x right, +y down, units bp —
+`objects.translate` is a relative delta, `objects.move_to` and
+`node.update`'s `changes.box` are absolute placement. Object ids are
+greppable in the raw XML (`custom="ibc1:<id>:…"`).
 
 Or just ask your agent: *"Create a system-overview figure in fig.ipe with 8
 nodes, orthogonal edges, Nature-muted palette; export PDF + PNG."*
@@ -98,10 +109,20 @@ nodes, orthogonal edges, Nature-muted palette; export PDF + PNG."*
 | `apply_operations` | Atomic typed batch: node/text/path/edge/icon create+update, translate, delete, group/ungroup, layer |
 | `route_edges` | Re-route stale or selected edges |
 | `layout_objects` | Align / distribute / grid |
-| `lint_figure` / `polish_figure` | Overflow/overlap/width checks + safe fixes |
-| `render_preview` | PNG preview (image content; `PREVIEW_STALE` aware) |
+| `lint_figure` / `polish_figure` | Overflow/overlap/off-page/edge-label checks + safe fixes (`fit_on_page`, `wrap_texts`, `grow_nodes_to_label`, …) |
+| `render_preview` | PNG preview (image content; `PREVIEW_STALE` aware; `overlay` adds coord grid + ids) |
 | `export_figure` | PDF/SVG/PNG generation directory + manifest |
 | `get_request_status` / `list_presets` | Journal status / styles, palettes, templates, icons, TeX profiles |
+
+## Request journal
+
+Every `.ipe` has an append-only sibling `<file>.ibc-journal`. Each
+mutating call needs a unique `--request-id`: a repeated id with the same
+payload replays the stored result (idempotent retry); with a different
+payload it fails as `REQUEST_ID_REUSED`; a `started`-but-never-`committed`
+record surfaces `COMMIT_STATUS_UNKNOWN` instead of guessing.
+`ipe-bindcraft status fig.ipe` shows the current revision and the last
+journal state.
 
 ## Live mode
 
@@ -135,12 +156,12 @@ layout engine.
 ## Testing
 
 ```bash
-pytest tests/unit            # 58 tests — no external deps
+pytest tests/unit            # no external deps
 pytest tests/integration     # real Ipe + TeX (skips when absent)
 pytest tests/windows_live    # real ipe.exe windows (Windows only)
 ```
 
-70 tests currently pass on the target machine; see
+82 unit tests + 6 integration tests pass on the target machine; see
 `docs/acceptance-report.md` for the A01–A23 evidence matrix, and
 `docs/capability-report.md` for the M0 probe results.
 

@@ -1,8 +1,16 @@
 """Safe metadata codec for Ipe ``custom`` attributes and layer ``data``.
 
-Format: ``ibc1:<base64url(canonical JSON, no padding)>`` — the alphabet has no
-quotes, angle brackets, or ampersands, so it survives Ipe's attribute
+Format: ``ibc1:<id>:<base64url(canonical JSON, no padding)>`` — the b64url
+alphabet has no ``:`` so the optional plaintext id tag is unambiguous, and no
+quotes/angle brackets/ampersands appear, so it survives Ipe's attribute
 serialization untouched (verified in M0, see docs/capability-report.md).
+Payloads without the tag (``ibc1:<b64>``, e.g. written by older versions or
+id-less doc meta) decode identically.
+
+The plaintext tag exists for humans/debugging (``grep`` on the raw XML finds
+objects by id; Ipe's save strips the separate ``name`` attr we also stamp,
+but preserves ``custom``). The authoritative identity is always the ``id``
+field inside the JSON payload.
 
 Metadata stores identity, semantic relations, and non-visual config only —
 never a second authoritative copy of geometry or text.
@@ -28,7 +36,11 @@ META_LAYER = "ibc-meta"
 def encode_meta(obj: dict[str, Any]) -> str:
     payload = {"schema": SCHEMA_VERSION, **obj}
     raw = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
-    return PREFIX + base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
+    b64 = base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
+    # plaintext id tag for greppability — part ids contain ':' (owner:part),
+    # which is still safe because the tag ends at the LAST ':' in the value.
+    tag = f"{obj['id']}:" if isinstance(obj.get("id"), str) else ""
+    return f"{PREFIX}{tag}{b64}"
 
 
 def decode_meta(value: str | None) -> dict[str, Any] | None:
@@ -36,6 +48,8 @@ def decode_meta(value: str | None) -> dict[str, Any] | None:
     if not value or not value.startswith(PREFIX):
         return None
     body = value[len(PREFIX):]
+    if ":" in body:
+        body = body.rsplit(":", 1)[1]  # strip the optional plaintext id tag
     try:
         pad = "=" * (-len(body) % 4)
         data = json.loads(base64.urlsafe_b64decode(body + pad))
