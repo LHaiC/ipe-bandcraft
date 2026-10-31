@@ -20,3 +20,9 @@ tmp/
 .ipe-bindcraft-journal/
 *.ibc-journal
 *.ibc-lock
+
+# Probe / machine-specific artifacts — these embed absolute local paths
+# (e.g. C:\Users\<user>\...) and must never be committed (privacy risk)
+docs/m0-*.json
+docs/m0-*.log
+docs/capability-report.md
